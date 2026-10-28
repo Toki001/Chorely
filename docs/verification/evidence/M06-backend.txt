@@ -1,0 +1,61 @@
+Local Auth/Firestore/Functions emulator suite; exit 0
+# Subtest: Callable ignores forged auth claims and denies unauthenticated/unverified/child callers
+ok 1 - Callable ignores forged auth claims and denies unauthenticated/unverified/child callers
+# Subtest: Real callable creates once and fresh signed-in client reads persisted household
+ok 2 - Real callable creates once and fresh signed-in client reads persisted household
+# Subtest: Two real adult tenants cannot read or write each other's household
+ok 3 - Two real adult tenants cannot read or write each other's household
+# Subtest: Real recipient-bound invite cannot promote adult; revoked token loses tenant access
+ok 4 - Real recipient-bound invite cannot promote adult; revoked token loses tenant access
+# Subtest: Real supervised custom identity sees assigned profile work and stale token is denied after device revoke
+ok 5 - Real supervised custom identity sees assigned profile work and stale token is denied after device revoke
+# Subtest: Linking email/password to supervised identity never permits adult conversion
+ok 6 - Linking email/password to supervised identity never permits adult conversion
+# Subtest: Adult creation persists household, role, index and one audit event
+ok 7 - Adult creation persists household, role, index and one audit event
+# Subtest: Concurrent retry creates exactly one tenant and changed payload replay fails
+ok 8 - Concurrent retry creates exactly one tenant and changed payload replay fails
+# Subtest: Anonymous, unverified, custom child identities and forged body role denied
+ok 9 - Anonymous, unverified, custom child identities and forged body role denied
+# Subtest: Invalid timezone, oversized text and malformed command ID denied before writes
+ok 10 - Invalid timezone, oversized text and malformed command ID denied before writes
+# Subtest: Revoked membership cannot retrieve accepted creation receipt
+ok 11 - Revoked membership cannot retrieve accepted creation receipt
+# Subtest: Household creation quota cannot be bypassed with new command IDs
+ok 12 - Household creation quota cannot be bypassed with new command IDs
+# Subtest: Adult invite is recipient-bound, hashes codes, grants only intended role and retries safely
+ok 13 - Adult invite is recipient-bound, hashes codes, grants only intended role and retries safely
+# Subtest: Expired and revoked invites fail; non-guardian cannot issue or revoke
+ok 14 - Expired and revoked invites fail; non-guardian cannot issue or revoke
+# Subtest: Guardian removal preserves last guardian and atomically removes discovery index
+ok 15 - Guardian removal preserves last guardian and atomically removes discovery index
+# Subtest: Adult member cannot add children, grant guardianship, pair devices or revoke membership
+ok 16 - Adult member cannot add children, grant guardianship, pair devices or revoke membership
+# Subtest: Child profile stores no email or DOB and idempotent creation yields one profile
+ok 17 - Child profile stores no email or DOB and idempotent creation yields one profile
+# Subtest: Approved child pairing binds distinct device identity; replay from another device denied
+ok 18 - Approved child pairing binds distinct device identity; replay from another device denied
+# Subtest: Expired/revoked pairing and revoked approving guardian cannot authorize new device
+ok 19 - Expired/revoked pairing and revoked approving guardian cannot authorize new device
+# Subtest: Code entropy format and text/path validation reject malformed requests before writes
+ok 20 - Code entropy format and text/path validation reject malformed requests before writes
+# Subtest: Disabled approving account invalidates outstanding invite and pairing; daily limits enforced
+ok 21 - Disabled approving account invalidates outstanding invite and pairing; daily limits enforced
+# Subtest: AUTH-01 anonymous and unrelated household reads denied
+ok 22 - AUTH-01 anonymous and unrelated household reads denied
+# Subtest: AUTH-01 active guardian reads own household and occurrences
+ok 23 - AUTH-01 active guardian reads own household and occurrences
+# Subtest: AUTH-02 child cannot elevate, mutate occurrence or read secrets
+ok 24 - AUTH-02 child cannot elevate, mutate occurrence or read secrets
+# Subtest: Child queries must restrict assigned scope; appropriate roster readable
+ok 25 - Child queries must restrict assigned scope; appropriate roster readable
+# Subtest: SYNC-03 revoked membership immediately denies server reads
+ok 26 - SYNC-03 revoked membership immediately denies server reads
+# Subtest: All client mutations denied even for guardian
+ok 27 - All client mutations denied even for guardian
+1..27
+# tests 27
+# pass 27
+# fail 0
+# skipped 0
+# duration_ms 17840.553542

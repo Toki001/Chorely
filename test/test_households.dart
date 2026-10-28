@@ -3,11 +3,12 @@ import 'package:chorely/features/households/domain/household_repository.dart';
 class TestHouseholds implements HouseholdRepository {
   final attempts = <String>[];
   bool fail = false;
+  Household? home;
   @override
   Stream<List<HouseholdSummary>> watchHouseholds(String uid) =>
       Stream.value([]);
   @override
-  Stream<Household?> watchHousehold(String id) => Stream.value(null);
+  Stream<Household?> watchHousehold(String id) => Stream.value(home);
   @override
   Stream<List<HouseholdProfile>> watchProfiles(String id) => Stream.value([]);
   @override

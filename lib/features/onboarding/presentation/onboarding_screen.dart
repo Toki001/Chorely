@@ -4,8 +4,9 @@ import '../../../app/theme.dart';
 import '../../../shared/widgets/page_frame.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({required this.onFinish, super.key});
+  const OnboardingScreen({required this.onFinish, this.onLinkChild, super.key});
   final VoidCallback onFinish;
+  final VoidCallback? onLinkChild;
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
@@ -140,6 +141,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: const Text('I already have an account'),
             ),
           ),
+          if (widget.onLinkChild != null)
+            Center(
+              child: TextButton(
+                onPressed: widget.onLinkChild,
+                child: const Text('Link a child device'),
+              ),
+            ),
         ],
       ),
     ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../domain/auth_repository.dart';
@@ -7,15 +9,50 @@ class FirebaseAuthRepository implements AuthRepository {
   final FirebaseAuth _auth;
 
   @override
-  Stream<AccountSession?> watchSession() => _auth.userChanges().map(
-    (user) => user == null
-        ? null
-        : AccountSession(
-            uid: user.uid,
-            email: user.email ?? '',
-            verified: user.emailVerified,
-          ),
-  );
+  Stream<AccountSession?> watchSession() {
+    late final StreamController<AccountSession?> controller;
+    StreamSubscription<User?>? subscription;
+    var generation = 0;
+    String? lastUid;
+    controller = StreamController<AccountSession?>(
+      onListen: () {
+        subscription = _auth.userChanges().listen((user) async {
+          final current = ++generation;
+          if (user == null) {
+            lastUid = null;
+            controller.add(null);
+            return;
+          }
+          if (lastUid != user.uid) controller.add(null);
+          lastUid = user.uid;
+          try {
+            final claims =
+                (await user.getIdTokenResult()).claims ?? <String, dynamic>{};
+            if (current != generation || controller.isClosed) return;
+            controller.add(
+              AccountSession(
+                uid: user.uid,
+                email: user.email ?? '',
+                verified: user.emailVerified,
+                supervised: claims['scopedChild'] == true,
+                householdId: claims['householdId'] as String?,
+                profileId: claims['actorId'] as String?,
+              ),
+            );
+          } catch (error, stack) {
+            if (current == generation && !controller.isClosed) {
+              controller.addError(error, stack);
+            }
+          }
+        }, onError: controller.addError);
+      },
+      onCancel: () async {
+        generation++;
+        await subscription?.cancel();
+      },
+    );
+    return controller.stream;
+  }
 
   Future<void> _guard(Future<void> Function() action) async {
     try {

@@ -1,5 +1,12 @@
 # Chorely changes
 
+## M06 — 2026-10-29
+
+Added recipient-bound invites, guardian/member controls, child profiles and scoped
+device pairing/revocation with QR and code entry. Persistent supervision prevents
+provider-linking escalation. Verified 27 backend tests, 15 Flutter tests and native
+guardian/child switching plus server-confirmed device removal; Android builds.
+
 ## M05 — 2026-10-29
 
 Implemented verified adult household creation, transactional guardian/profile/index

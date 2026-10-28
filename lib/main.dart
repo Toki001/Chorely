@@ -9,6 +9,7 @@ import 'app/chorely_app.dart';
 import 'app/theme.dart';
 import 'features/auth/data/firebase_auth_repository.dart';
 import 'features/households/data/firebase_household_repository.dart';
+import 'features/family/data/firebase_family_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +49,11 @@ Future<void> main() async {
 void mountApplication() => runApp(
   ChorelyApp(
     auth: FirebaseAuthRepository(FirebaseAuth.instance),
+    family: FirebaseFamilyRepository(
+      FirebaseFirestore.instance,
+      FirebaseFunctions.instance,
+      FirebaseAuth.instance,
+    ),
     households: FirebaseHouseholdRepository(
       FirebaseFirestore.instance,
       FirebaseFunctions.instance,

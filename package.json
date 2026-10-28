@@ -8,8 +8,8 @@
     "node": "22.x"
   },
   "scripts": {
-    "format": "prettier --write functions/src backend-tests",
-    "format:check": "prettier --check functions/src backend-tests",
+    "format": "prettier --write functions/src backend-tests scripts/*.mjs",
+    "format:check": "prettier --check functions/src backend-tests scripts/*.mjs",
     "build": "npm run build --workspace functions",
     "test:rules": "firebase emulators:exec --only firestore --project demo-chorely 'node --test backend-tests/rules.test.mjs'",
     "test:backend": "npm run build && firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node --test --test-concurrency=1 backend-tests/*.test.mjs'",

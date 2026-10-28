@@ -12,6 +12,8 @@ dependencies:
   cloud_firestore: 7.1.0
   cloud_functions: 7.0.1
   uuid: 4.6.0
+  qr_flutter: 4.1.0
+  mobile_scanner: 7.4.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

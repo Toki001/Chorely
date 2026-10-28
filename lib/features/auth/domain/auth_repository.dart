@@ -3,10 +3,16 @@ class AccountSession {
     required this.uid,
     required this.email,
     required this.verified,
+    this.supervised = false,
+    this.householdId,
+    this.profileId,
   });
   final String uid;
   final String email;
   final bool verified;
+  final bool supervised;
+  final String? householdId;
+  final String? profileId;
 }
 
 abstract interface class AuthRepository {

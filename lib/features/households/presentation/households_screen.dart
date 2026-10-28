@@ -5,14 +5,19 @@ import '../../../app/theme.dart';
 import '../../../shared/widgets/page_frame.dart';
 import '../../auth/domain/auth_repository.dart';
 import '../domain/household_repository.dart';
+import '../../family/domain/family_repository.dart';
+import '../../family/presentation/family_panel.dart';
+import '../../family/presentation/join_screen.dart';
 
 class HouseholdsScreen extends StatefulWidget {
   const HouseholdsScreen({
+    required this.family,
     required this.session,
     required this.auth,
     required this.repository,
     super.key,
   });
+  final FamilyRepository family;
   final AccountSession session;
   final AuthRepository auth;
   final HouseholdRepository repository;
@@ -25,8 +30,20 @@ class _HouseholdsScreenState extends State<HouseholdsScreen> {
       .watchHouseholds(widget.session.uid);
   String? _selected;
   bool _creating = false;
+  bool _joining = false;
   @override
   Widget build(BuildContext context) {
+    if (_joining) {
+      return JoinScreen(
+        childDevice: false,
+        repository: widget.family,
+        onBack: () => setState(() => _joining = false),
+        onJoined: (id) => setState(() {
+          _joining = false;
+          _selected = id;
+        }),
+      );
+    }
     if (_creating) {
       return CreateHouseholdScreen(
         repository: widget.repository,
@@ -41,6 +58,8 @@ class _HouseholdsScreenState extends State<HouseholdsScreen> {
       return _HouseholdScreen(
         key: ValueKey(_selected),
         id: _selected!,
+        uid: widget.session.uid,
+        family: widget.family,
         repository: widget.repository,
         onBack: () => setState(() => _selected = null),
       );
@@ -152,6 +171,10 @@ class _HouseholdsScreenState extends State<HouseholdsScreen> {
               onPressed: () => setState(() => _creating = true),
               icon: const Icon(Icons.add_rounded),
               label: const Text('Create a household'),
+            ),
+            TextButton(
+              onPressed: () => setState(() => _joining = true),
+              child: const Text('Join a household'),
             ),
           ],
         ),
@@ -307,12 +330,16 @@ class _CreateHouseholdScreenState extends State<CreateHouseholdScreen> {
 
 class _HouseholdScreen extends StatefulWidget {
   const _HouseholdScreen({
+    required this.uid,
+    required this.family,
     required this.id,
     required this.repository,
     required this.onBack,
     super.key,
   });
   final String id;
+  final String uid;
+  final FamilyRepository family;
   final HouseholdRepository repository;
   final VoidCallback onBack;
   @override
@@ -321,8 +348,6 @@ class _HouseholdScreen extends StatefulWidget {
 
 class _HouseholdScreenState extends State<_HouseholdScreen> {
   late Stream<Household?> _home = widget.repository.watchHousehold(widget.id);
-  late Stream<List<HouseholdProfile>> _profiles = widget.repository
-      .watchProfiles(widget.id);
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
@@ -346,7 +371,6 @@ class _HouseholdScreenState extends State<_HouseholdScreen> {
                 TextButton(
                   onPressed: () => setState(() {
                     _home = widget.repository.watchHousehold(widget.id);
-                    _profiles = widget.repository.watchProfiles(widget.id);
                   }),
                   child: const Text('Try again'),
                 ),
@@ -397,39 +421,10 @@ class _HouseholdScreenState extends State<_HouseholdScreen> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
-              StreamBuilder<List<HouseholdProfile>>(
-                stream: _profiles,
-                builder: (context, people) {
-                  if (people.hasError) {
-                    return const InlineError(
-                      'Couldn’t load household members.',
-                    );
-                  }
-                  if (!people.hasData) {
-                    return const LinearProgressIndicator(
-                      semanticsLabel: 'Loading members',
-                    );
-                  }
-                  return Column(
-                    children: people.data!
-                        .map(
-                          (p) => Card(
-                            elevation: 0,
-                            color: Colors.white,
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(16),
-                              leading: const CircleAvatar(
-                                backgroundColor: ChorelyColors.mint,
-                                child: Icon(Icons.person_outline_rounded),
-                              ),
-                              title: Text(p.nickname),
-                              subtitle: Text(p.role),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  );
-                },
+              FamilyPanel(
+                householdId: widget.id,
+                uid: widget.uid,
+                repository: widget.family,
               ),
             ],
           );

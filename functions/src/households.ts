@@ -63,7 +63,10 @@ export async function createHousehold(
   return db.runTransaction(async (tx) => {
     const previous = await tx.get(receipt);
     const account = await tx.get(user);
-    if (account.data()?.status === "disabled")
+    if (
+      account.data()?.status === "disabled" ||
+      account.data()?.accountType === "supervised_device"
+    )
       throw new HttpsError("permission-denied", "Account is unavailable.");
     if (previous.exists) {
       if (previous.data()?.payloadHash !== payloadHash)

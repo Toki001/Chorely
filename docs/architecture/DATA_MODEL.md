@@ -40,6 +40,11 @@ households/{householdId}/notificationJobs/{jobId}   # backend only
 invites/{inviteId}                                # server only
 pairedDevices/{opaqueDeviceId}                    # server only
 commands/{commandId}                              # server only
+pairings/{codeHash}                               # server only, expiring child approval
+rateLimits/{uid}                                  # server only, transactional daily counters
+households/{householdId}/invitations/{codeHash}     # guardian-only minimal status index
+households/{householdId}/pairings/{codeHash}        # guardian-only minimal status index
+households/{householdId}/devices/{deviceUid}        # guardian-only minimal device index
 ```
 
 M05 discovery index: an account can list only its own index. Rules cannot safely
@@ -49,6 +54,13 @@ remove the index (M06). An index never grants access or authority. Initial creat
 atomically writes home/member/profile/index/audit/receipt and caps account creation
 at five households to bound bootstrap abuse. This is a development policy pending
 review of account lifecycle limits in M16.
+
+M06 implements `members/{deviceUid}.actorId = childProfileId`: profile identity is
+stable across device replacement; each device has separate revocable membership.
+Adult memberships use their Auth UID as actor. Child assignment reads resolve this
+server-owned mapping. Pairing retry proofs are hashed in private pairing records;
+no hardware attestation or device public-key enrollment is claimed. See ADR-003
+for actual token/retry/revocation behavior and the difference from a hardware key.
 
 ## Chore state machine
 `scheduled` -> `in_progress` (optional) -> `completed` OR `pending_review` -> `approved`/`needs_redo`. Also `missed`, `cancelled`, `skipped` with explicit policy. A task can be marked overdue based on current time without falsely mutating its base completion state. Changes must be validated against current authoritative state. Map child UI labels: 'To do', 'Done', 'Waiting for review', 'Need help', 'Past due'. Use deterministic event and notification semantics.

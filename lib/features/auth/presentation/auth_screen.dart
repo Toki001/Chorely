@@ -4,8 +4,9 @@ import '../../../shared/widgets/page_frame.dart';
 import '../domain/auth_repository.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({required this.repository, super.key});
+  const AuthScreen({required this.repository, this.onLinkChild, super.key});
   final AuthRepository repository;
+  final VoidCallback? onLinkChild;
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
@@ -179,6 +180,11 @@ class _AuthScreenState extends State<AuthScreen> {
                 TextButton(
                   onPressed: _busy ? null : _reset,
                   child: const Text('Forgot password?'),
+                ),
+              if (widget.onLinkChild != null)
+                TextButton(
+                  onPressed: _busy ? null : widget.onLinkChild,
+                  child: const Text('Link a child device'),
                 ),
             ],
           ),

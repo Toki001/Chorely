@@ -55,3 +55,17 @@ commands; duplicate retries reuse the command ID. Durable interrupted-write
 recovery and cached offline experiences remain M12. The initial timezone picker
 offers Philippines, New York, London, Sydney and UTC; the server validates IANA
 zones. A broader localized picker is a later UX refinement.
+
+Family supervision verification can run independently on fresh emulators:
+
+```sh
+npm run build
+npx firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/seed_family_fixture.mjs && node scripts/run_family_native.mjs 11D93CA0-385A-42CB-B905-449C8439EB01'
+```
+
+This exercises guardian child-profile creation, approval, code entry on a signed-out
+device, actual custom-auth child session, adult reauthentication and device removal.
+The runner checks the final persisted device state. Camera scanning starts only
+when requested; the simulator journey uses code entry. Physical-camera scanning
+and Android device runtime coverage remain unverified. Codes and device retry
+proofs must never be copied into reports, issues or analytics.

@@ -8,6 +8,7 @@ export type OccurrenceStatus =
   | "cancelled";
 export interface Actor {
   readonly uid: string;
+  readonly email?: string;
   readonly emailVerified: boolean;
   readonly provider: string;
   readonly scopedChild: boolean;

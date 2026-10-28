@@ -17,6 +17,12 @@ transaction/replay/quota/revocation cases. `test/households_test.dart` checks
 validation, retry identity, confirmed success and 320dp/200% text. Native creation
 and restart checks live in `integration_test/household{,_restart}_test.dart`.
 
+M06 evidence: H02/H03/H04/V04 map to `membership.test.mjs`, real invite/scoped-child
+cases in `callable.test.mjs`, `test/family_test.dart` and native `family_test.dart`.
+AUTH-04/05 cover recipient binding, expiry/replay/revocation; AUTH-02 covers scoped
+identities, read constraints and stale-token denial. No camera hardware result is
+inferred from code-entry tests. See M06 verification for exact counts and limits.
+
 | Requirement | Design screen(s) | Milestone | Acceptance/QA |
 |---|---|---|---|
 | H01 Household setup | S03–S05 | M05 | AUTH-01, restart |

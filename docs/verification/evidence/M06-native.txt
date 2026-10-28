@@ -1,0 +1,15 @@
+Local iOS family journey after supervised-provider hardening; overall exit 0
+00:00 +0: loading /Users/jameskierdoliguez/projects/chorely/integration_test/family_test.dart
+Xcode build done.                                           32.5s
+00:00 +0: Guardian approves child profile/device; shared device requires adult credentials to return
+Chorely: initializing local backend
+Chorely: Firebase initialized
+Chorely: Auth emulator configured
+Chorely: data emulators configured
+Chorely: backend configured
+Chorely native child view ready
+Chorely native guardian view ready
+00:20 +1: (tearDownAll)
+00:21 +1: All tests passed!
+Native server device statuses: [ 'revoked' ]
+PASS: native UI removal persisted on the local server.

@@ -8,7 +8,7 @@ Future<void> waitFor(WidgetTester tester, Finder finder) async {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 100)),
     );
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
   }
   if (finder.evaluate().isEmpty) {
     // Test fixtures are fictional; include visible feedback to diagnose failures.
@@ -17,4 +17,20 @@ Future<void> waitFor(WidgetTester tester, Finder finder) async {
     );
   }
   expect(finder, findsOneWidget);
+}
+
+Future<void> waitUntilAbsent(WidgetTester tester, Finder finder) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 35));
+  while (finder.evaluate().isNotEmpty && DateTime.now().isBefore(deadline)) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  if (finder.evaluate().isNotEmpty) {
+    debugPrint(
+      'Native test screen: ${find.byType(Text).evaluate().map((e) => (e.widget as Text).data).whereType<String>().join(' | ')}',
+    );
+  }
+  expect(finder, findsNothing);
 }

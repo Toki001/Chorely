@@ -12,6 +12,8 @@ service cloud.firestore {
       return active(hid) && membership(hid).role in ['guardian', 'adult'];
     }
     function child(hid) { return active(hid) && membership(hid).role == 'child'; }
+    function guardian(hid) { return active(hid) && membership(hid).role == 'guardian'; }
+    function actorId(hid) { return membership(hid).get('actorId', request.auth.uid); }
 
     // All mutations cross the trusted command boundary. Auth UID is the actor
     // for adult and scoped child-device identities; no client-selected actor.
@@ -43,13 +45,16 @@ service cloud.firestore {
         allow write: if false;
       }
       match /occurrences/{id} {
-        allow read: if adult(hid) || (child(hid) && request.auth.uid in resource.data.assignedActorIds);
+        allow read: if adult(hid) || (child(hid) && actorId(hid) in resource.data.assignedActorIds);
         allow write: if false;
       }
       match /activity/{id} {
         allow read: if adult(hid);
         allow write: if false;
       }
+      match /invitations/{id} { allow read: if guardian(hid); allow write: if false; }
+      match /pairings/{id} { allow read: if guardian(hid); allow write: if false; }
+      match /devices/{id} { allow read: if guardian(hid); allow write: if false; }
       match /{document=**} { allow read, write: if false; }
     }
     match /{document=**} { allow read, write: if false; }
