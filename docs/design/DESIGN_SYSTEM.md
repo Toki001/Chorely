@@ -20,7 +20,7 @@ Light-first premium family productivity, **not** corporate SaaS. Welcoming, comf
 | Text secondary | `#596174` | `#C1C7D3` | supporting text |
 | Border | `#E6E9F0` | `#3B414E` | separators, controls |
 | Success | `#19856A` | `#71D7B0` | completion, only when semantic |
-| Attention | `#B66A11` | `#F5C777` | approaching deadline |
+| Attention | `#955409` | `#F5C777` | approaching deadline |
 | Error | `#C54550` | `#F49DA8` | real errors, not routine overdue shame |
 | Lavender | `#EEE9FF` | `#40385E` | illustration/card accent |
 | Mint | `#E0F6EB` | `#28483D` | illustration/card accent |

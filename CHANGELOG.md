@@ -1,5 +1,10 @@
 # Chorely changes
 
+## M03 — 2026-10-29
+
+Created nine original household illustrations with provenance, adopted accessible
+light tokens, and verified responsive illustrated onboarding with phone/tablet goldens.
+
 ## M02 — 2026-10-29
 
 Established server command and identity boundaries, child-scoped read rules,

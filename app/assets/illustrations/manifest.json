@@ -1,0 +1,92 @@
+[
+  {
+    "file": "welcome.png",
+    "tool": "built-in image_gen.imagegen",
+    "created": "2026-10-29",
+    "prompt": "welcome.prompt.txt",
+    "description": "A household sharing laundry, plant care and a checklist.",
+    "sourceHint": "Generated images are saved to /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4 as /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4/exec-254a9c98-6d95-48a1-adc1-eb66f27d62aa.png by default.",
+    "rights": "See LICENSES.md; local preview authorized, release review pending",
+    "sha256": "6819b8dd38251718faaf3240c4449e1e3b79bd1ab02d48b2d5b87eb6a29b33a9"
+  },
+  {
+    "file": "assign.png",
+    "tool": "built-in image_gen.imagegen",
+    "created": "2026-10-29",
+    "prompt": "assign.prompt.txt",
+    "description": "An adult pinning a chore checklist to a refrigerator.",
+    "sourceHint": "Generated images are saved to /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4 as /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4/exec-128590d2-f4ea-4d5c-86bc-b9d5e5d2170e.png by default.",
+    "rights": "See LICENSES.md; local preview authorized, release review pending",
+    "sha256": "1f9ef073e5673ef74d9a05c4765b185ee547bde67335413ed222034527969220"
+  },
+  {
+    "file": "dinner.png",
+    "tool": "built-in image_gen.imagegen",
+    "created": "2026-10-29",
+    "prompt": "dinner.prompt.txt",
+    "description": "A household preparing dinner and setting the table.",
+    "sourceHint": "Generated images are saved to /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4 as /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4/exec-364959a1-cb29-4b21-aab2-d6dda0f7d755.png by default.",
+    "rights": "See LICENSES.md; local preview authorized, release review pending",
+    "sha256": "d4bbf8c0dec98e22be80c30476ac8452b49fc95d22a678af1631a9b901d537fe"
+  },
+  {
+    "file": "pets.png",
+    "tool": "built-in image_gen.imagegen",
+    "created": "2026-10-29",
+    "prompt": "pets.prompt.txt",
+    "description": "A household member refilling a cat's water bowl.",
+    "sourceHint": "Generated images are saved to /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4 as /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4/exec-014ccf0e-524e-4077-8303-c03086ca9a6d.png by default.",
+    "rights": "See LICENSES.md; local preview authorized, release review pending",
+    "sha256": "93df2ef73f9d3f551df90ebb44472e981e1efc70ffb11e40f34dd252a938de48"
+  },
+  {
+    "file": "shopping.png",
+    "tool": "built-in image_gen.imagegen",
+    "created": "2026-10-29",
+    "prompt": "shopping.prompt.txt",
+    "description": "Two household members carrying shared groceries.",
+    "sourceHint": "Generated images are saved to /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4 as /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4/exec-d8d9f49e-332f-4a66-9020-d1a64cabda6e.png by default.",
+    "rights": "See LICENSES.md; local preview authorized, release review pending",
+    "sha256": "ac9a5a9b1efdfb28004dec5b2ad94a9bf0593d68cb900a23c4605f132f1a946a"
+  },
+  {
+    "file": "invite.png",
+    "tool": "built-in image_gen.imagegen",
+    "created": "2026-10-29",
+    "prompt": "invite.prompt.txt",
+    "description": "Household members waving from friendly window frames.",
+    "sourceHint": "Generated images are saved to /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4 as /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4/exec-cfa8112e-35c1-4f8b-bb39-ac609694ba91.png by default.",
+    "rights": "See LICENSES.md; local preview authorized, release review pending",
+    "sha256": "8e63e2342192a6c651b0dd23c358bf4bb76dfcfaf57909f50aebe940326cdf20"
+  },
+  {
+    "file": "done.png",
+    "tool": "built-in image_gen.imagegen",
+    "created": "2026-10-29",
+    "prompt": "done.prompt.txt",
+    "description": "Two household members celebrating shared work.",
+    "sourceHint": "Generated images are saved to /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4 as /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4/exec-fffcbc40-8181-46c7-9051-2aa0fd9f8a9c.png by default.",
+    "rights": "See LICENSES.md; local preview authorized, release review pending",
+    "sha256": "d0b407493f57ee206966e3ff761a3f73edb2609883daecf859e8e699ce653eb8"
+  },
+  {
+    "file": "calendar.png",
+    "tool": "built-in image_gen.imagegen",
+    "created": "2026-10-29",
+    "prompt": "calendar.prompt.txt",
+    "description": "A blank illustrated calendar beside a houseplant.",
+    "sourceHint": "Generated images are saved to /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4 as /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4/exec-622914a2-3fcb-4bb7-bb89-c6e9d7a4e748.png by default.",
+    "rights": "See LICENSES.md; local preview authorized, release review pending",
+    "sha256": "ea6568b9372226cfb085b36bce8b063640b48242af29784100dd2570163d5b4f"
+  },
+  {
+    "file": "offline.png",
+    "tool": "built-in image_gen.imagegen",
+    "created": "2026-10-29",
+    "prompt": "offline.prompt.txt",
+    "description": "A household and home with calm connection motifs.",
+    "sourceHint": "Generated images are saved to /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4 as /Users/jameskierdoliguez/.codex/generated_images/01a1840d-7044-70b0-b1c9-db1cb3490ce4/exec-9b772fe3-f540-4a4a-a071-5d35da3c3aa5.png by default.",
+    "rights": "See LICENSES.md; local preview authorized, release review pending",
+    "sha256": "f94411d07c28850600256d3e32185bbcae31c3ef1e1dfb0e32590bd8216a9c34"
+  }
+]
