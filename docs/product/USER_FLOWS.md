@@ -32,3 +32,30 @@ Lists → Shared groceries → add item → second device sees change → one ma
 
 ## F11 Leaving household / delete data
 Guardian/member → manage data → leave (according to role) or request export/deletion → server revokes tokens and access → cached sensitive data cleared promptly → legal/technical retention policy explained. Never strand a household without an admin without warning.
+
+## F12 Manage household and permissions
+Family → household settings → guardian renames/archives or changes a member's
+explicit capabilities → server checks role/version and records event. Unrelated
+household, last-guardian removal and child privilege edits are denied. Archived
+household becomes read-only except authorized lifecycle actions.
+
+## F13 Read and navigate shared work
+Today → own next occurrence → Chores Mine/All authorized → filter → detail;
+Calendar day/week/month → member filter → occurrence detail. Child sees only
+permitted tasks. Empty calendar offers a working permitted next step; unavailable
+or deleted task returns safe feedback. Real counts derive from stored occurrences.
+
+## F14 Review and undo
+Guardian activity → pending review → approve/request redo with reason → server
+rejects self-review and stale revisions. Assignee may undo own contribution within
+five minutes if still valid. Activity shows accepted transitions only.
+
+## F15 Notification preferences and launch
+Settings → notification rationale → OS prompt (denial allowed) → quiet hours and
+channels → save. Assignment/due/reminder jobs deduplicate. Cold-start tap → auth →
+server membership check → permitted detail or safe fallback. No child names in push.
+
+## F16 Accessible onboarding and visual states
+Welcome → assign → celebrate (original licensed scenes) → guardian sign-in.
+All three pages scroll with 200% text, safe areas, labeled actions and reduced
+motion. Errors/retry/loading/permission-denied/pending/conflict have explicit states.

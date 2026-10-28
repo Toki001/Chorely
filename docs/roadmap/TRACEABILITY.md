@@ -34,3 +34,34 @@ Update this file when features, screens and tests evolve. `Mxx` indicates **plan
 | Privacy export/delete | S30 | M16 | DATA-01–02 |
 | Offline sync / conflicts | S31–S32 | M12 | SYNC-01–03 |
 | Release | All | M17–M19 | PERF-01, build/store check |
+
+## P0 release gate mapping — M01
+
+All entries are planned tests, not verification claims. Feature priorities come from FEATURES.md.
+
+| Requirement | User flow | Screen | Owner | Planned tests |
+|---|---|---|---|---|
+| H01 | F01/F11/F12 | S04/S23/S29/S30 | M05/M16 | AUTH-01/DATA-01 |
+| H02 | F02 | S05/S21 | M06 | AUTH-04 |
+| H03 | F03/F09 | S06/S07/S10 | M06/M12 | AUTH-02/AUTH-05/SYNC-03 |
+| H04 | F12 | S21/S22/S33 | M05/M06 | AUTH-01/AUTH-02/AUTH-03 |
+| C01 | F04 | S11/S12/S13 | M07 | CHORE-01 |
+| C02 | F04/F06 | S12/S14 | M07/M09 | CHORE-10/AUTH-03 |
+| C03 | F04/F13 | S12/S14/S17 | M07 | CHORE-05/CHORE-07 |
+| C04 | F05 | S15 | M08 | CHORE-02/CHORE-05/CHORE-06/CHORE-07 |
+| C05 | F05 | S15 | M08 | CHORE-08/CHORE-09 |
+| C06 | F06/F07/F14 | S10/S14/S24/S27 | M09 | CHORE-03/CHORE-11/SYNC-02 |
+| C07 | F14 | S26 | M09 | CHORE-04/AUTH-02 |
+| C08 | F04/F06 | S12/S14 | M07 | UI-02/ASSET-01 |
+| N01 | F15 | S08/S25 | M11 | NOTIF-01/NOTIF-02/NOTIF-04/NOTIF-05 |
+| N02 | F15 | S23 | M11 | NOTIF-03 |
+| V01 | F13 | S09/S10/S34 | M10 | UI-01/UI-02/UI-03/UI-04 |
+| V02 | F13 | S11/S14 | M07/M10 | UI-01/UI-02/UI-03 |
+| V03 | F13 | S17/S18/S35 | M10 | CHORE-05/UI-01/UI-03 |
+| V04 | F02/F03/F12 | S21/S22 | M06/M10 | AUTH-01/AUTH-02/AUTH-05 |
+| V05 | F14 | S24 | M09 | CHORE-03/CHORE-04 |
+| I02 | F16 | S02/S34/S35 | M03/M15 | ASSET-01/UI-03/UI-04 |
+| Offline/conflicts | F09 | S31/S32 | M12 | SYNC-01/SYNC-02/SYNC-03 |
+| Privacy lifecycle | F11 | S23/S29/S30 | M16 | DATA-01/DATA-02 |
+| Accessible states | F16 | S31/S32/S33/S36/S37/S38 | M03/M16 | UI-01/UI-02/UI-03 |
+| Release | F01–F16 | All P0 | M17/M18/M19 | PERF-01/DATA-02 |

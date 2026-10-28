@@ -36,3 +36,6 @@
 | PERF-01 | Large household | 20 profiles/500 tasks | Paginated and responsive |
 
 Tests marked P1 only become release blocking when those features are included in the release scope.
+
+| CHORE-11 | Undo/help | Undo outside window, after review; request help | Invalid undo denied; help does not complete |
+| ASSET-01 | Rights | Bundled illustration provenance + reference exclusion | All shipped assets inventoried; no screenshot bundled |

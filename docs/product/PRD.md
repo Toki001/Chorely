@@ -62,3 +62,41 @@ Free core household, assignments, alerts and completion; optional modest paid co
 
 ## Decisions to validate
 - Single vs multiple household memberships per adult; choice of guardian approvals; supported languages; default recurring cadence; retention policies; paid tier; applicability of store Kids Category. Document in ADRs and verify during product testing.
+
+## M01 implementation decisions (2026-10-29)
+
+- One active household selection per device; adult accounts may belong to multiple
+  households. Membership is checked for every read/command; selecting a household
+  never grants access. Last guardian cannot leave until transfer or household deletion.
+- P0 auth starts with verified adult email/password and password reset. Verification
+  is a technical account check, not proof of adulthood or legal consent. Production
+  consent copy and provider/store review remain release gates. No child email or DOB.
+- P0 assignments explicitly select `any_one_completes` or `all_members_complete`.
+  Any-one completion records the first accepted actor; all-members records each
+  assigned contribution and finishes only after all contribute. Review applies after
+  the required contributions. A completing guardian cannot approve their own work.
+- Undo: actor may withdraw their own contribution within five minutes of server
+  acceptance if no review decision or subsequent dependent transition occurred.
+  Undo creates an audit event and new version; no history is erased.
+- Need help is P0 and never falsely marks done. P0 postponement is guardian-only,
+  per-occurrence, versioned and reminder-invalidating. Negotiated swaps/absence and
+  recurring exception UI remain P1. A missed deadline is a derived display state;
+  no punitive scores or automatic completion.
+- Monthly day 29/30/31 skips nonexistent dates. DST gaps move to first valid local
+  minute; overlap chooses the earlier instant. Preview states this policy. Timezone
+  changes require a future effective date and preserve historic UTC instants.
+- Child reads: own assignments, minimal public roster and child-visible templates;
+  no adult contact details, invite secrets, privileged activity or admin collections.
+  Shared-device child mode uses a separate scoped identity, never a UI flag on an
+  active guardian session. Guardian return requires reauthentication.
+- Quiet hours default 20:00–07:00 household local time; configurable, no urgent
+  bypass. Nonurgent reminders delay to end of quiet hours and recheck task status.
+- No analytics, ads, photos or external media uploads in the initial slice. C08
+  supports text steps and an optional rights-cleared bundled illustration key;
+  user image upload requires a separate security/storage design before inclusion.
+- P1 meal duty is assignment context only; nutritional advice and payments excluded.
+  Lists tab stays hidden until shared persistence/permissions/checkoff work.
+- Privacy engineering target: immediately revoke access on deletion request, purge
+  live household content within 30 days, disclose backup retention separately.
+  No promise of legal compliance; actual hosting retention and reviewed copy must
+  be confirmed before release. Data deletion/export remains a P0 hard gate.

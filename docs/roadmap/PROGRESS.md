@@ -6,8 +6,8 @@
 
 | Milestone | Status | Commit SHA | Verified on | Evidence | Blockers |
 |---|---|---|---|---|---|
-| M00 | PASS | pending commit | 2026-10-29 | `docs/verification/M00.md` | No Android AVD; production configuration absent |
-| M01 | PLANNED | — | — | `docs/verification/M01.md` (to create) | — |
+| M00 | PASS | 66197519871eb2c037566f9cb52428f32f915555 | 2026-10-29 | `docs/verification/M00.md` | No Android AVD; production configuration absent |
+| M01 | PASS | pending commit | 2026-10-29 | `docs/verification/M01.md` | Runtime gates remain planned |
 | M02 | PLANNED | — | — | `docs/verification/M02.md` (to create) | — |
 | M03 | PLANNED | — | — | `docs/verification/M03.md` (to create) | — |
 | M04 | PLANNED | — | — | `docs/verification/M04.md` (to create) | — |
