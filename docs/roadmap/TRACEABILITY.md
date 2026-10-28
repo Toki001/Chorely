@@ -2,6 +2,10 @@
 
 Update this file when features, screens and tests evolve. `Mxx` indicates **planned ownership**, not passing verification.
 
+M02 evidence: AUTH-01, AUTH-02 and server-read SYNC-03 assertions run in
+`backend-tests/rules.test.mjs` (6 passing cases). These do not establish function,
+pairing, device-cache or full feature acceptance; see `docs/verification/M02.md`.
+
 | Requirement | Design screen(s) | Milestone | Acceptance/QA |
 |---|---|---|---|
 | H01 Household setup | S03–S05 | M05 | AUTH-01, restart |

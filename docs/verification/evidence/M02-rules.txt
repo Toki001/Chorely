@@ -1,0 +1,13 @@
+Command: npm run test:rules
+Exit: 0
+ok 1 - AUTH-01 anonymous and unrelated household reads denied
+ok 2 - AUTH-01 active guardian reads own household and occurrences
+ok 3 - AUTH-02 child cannot elevate, mutate occurrence or read secrets
+ok 4 - Child queries must restrict assigned scope; appropriate roster readable
+ok 5 - SYNC-03 revoked membership immediately denies server reads
+ok 6 - All client mutations denied even for guardian
+# tests 6
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0

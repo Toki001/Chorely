@@ -1,5 +1,10 @@
 # Chorely changes
 
+## M02 — 2026-10-29
+
+Established server command and identity boundaries, child-scoped read rules,
+transaction contracts and six passing emulator authorization cases.
+
 ## M01 — 2026-10-29
 
 Mapped every P0 feature to journeys, screens and planned checks; resolved initial

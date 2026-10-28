@@ -22,3 +22,4 @@ ios/Flutter/Generated.xcconfig
 ios/Flutter/flutter_export_environment.sh
 .idea/
 *.iml
+functions/lib/

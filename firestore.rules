@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function membership(hid) {
+      return get(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid)).data;
+    }
+    function active(hid) {
+      return signedIn() && membership(hid).status == 'active';
+    }
+    function adult(hid) {
+      return active(hid) && membership(hid).role in ['guardian', 'adult'];
+    }
+    function child(hid) { return active(hid) && membership(hid).role == 'child'; }
+
+    // All mutations cross the trusted command boundary. Auth UID is the actor
+    // for adult and scoped child-device identities; no client-selected actor.
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+      match /households/{hid} {
+        allow read: if signedIn() && request.auth.uid == uid && active(hid);
+        allow write: if false;
+      }
+    }
+    match /households/{hid} {
+      allow read: if active(hid);
+      allow write: if false;
+      match /members/{uid} {
+        allow read: if adult(hid) || (active(hid) && request.auth.uid == uid);
+        allow write: if false;
+      }
+      match /profiles/{uid} {
+        // Public-to-household nickname/avatar/role only; never contact details.
+        allow read: if active(hid);
+        allow write: if false;
+      }
+      match /choreTemplates/{id} {
+        allow read: if adult(hid) || (child(hid) && resource.data.childVisible == true);
+        allow write: if false;
+      }
+      match /occurrences/{id} {
+        allow read: if adult(hid) || (child(hid) && request.auth.uid in resource.data.assignedActorIds);
+        allow write: if false;
+      }
+      match /activity/{id} {
+        allow read: if adult(hid);
+        allow write: if false;
+      }
+      match /{document=**} { allow read, write: if false; }
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

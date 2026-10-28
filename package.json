@@ -1,0 +1,32 @@
+{
+  "name": "chorely-backend",
+  "private": true,
+  "workspaces": [
+    "functions"
+  ],
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "format": "prettier --write functions/src backend-tests",
+    "format:check": "prettier --check functions/src backend-tests",
+    "build": "npm run build --workspace functions",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-chorely 'node --test backend-tests/rules.test.mjs'",
+    "emulators": "npm run build && firebase emulators:start --only auth,firestore,functions --project demo-chorely"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "firebase": "12.19.0",
+    "firebase-tools": "15.34.1",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "1.14.6",
+    "@firebase/app": "0.16.2",
+    "@firebase/app-compat": "0.5.18",
+    "gaxios": {
+      "uuid": "11.1.1"
+    }
+  }
+}

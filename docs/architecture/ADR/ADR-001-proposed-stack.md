@@ -1,6 +1,6 @@
 # ADR-001 — Proposed Flutter + Managed Backend
 
-**Status:** PROPOSED (requires repository discovery/verification)
+**Status:** ACCEPTED for local development (2026-10-29); live services not provisioned. See ADR-002 for pinned runtime and boundary decisions.
 
 ## Context
 Multi-device households with parent/child permissions, real-time chore completion and notifications need server authorization and reliable collaboration. Offline-only storage doesn't support the core need. An enterprise-grade custom backend would increase complexity and operating burden.
