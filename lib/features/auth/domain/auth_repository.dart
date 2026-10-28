@@ -1,0 +1,25 @@
+class AccountSession {
+  const AccountSession({
+    required this.uid,
+    required this.email,
+    required this.verified,
+  });
+  final String uid;
+  final String email;
+  final bool verified;
+}
+
+abstract interface class AuthRepository {
+  Stream<AccountSession?> watchSession();
+  Future<void> signIn(String email, String password);
+  Future<void> register(String email, String password);
+  Future<void> sendVerification();
+  Future<void> refresh();
+  Future<void> resetPassword(String email);
+  Future<void> signOut();
+}
+
+class AccountFailure implements Exception {
+  const AccountFailure(this.message);
+  final String message;
+}

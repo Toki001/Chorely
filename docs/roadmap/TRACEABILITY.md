@@ -6,6 +6,11 @@ M02 evidence: AUTH-01, AUTH-02 and server-read SYNC-03 assertions run in
 `backend-tests/rules.test.mjs` (6 passing cases). These do not establish function,
 pairing, device-cache or full feature acceptance; see `docs/verification/M02.md`.
 
+M04 evidence: native onboarding/adult auth shell in `integration_test/foundation_test.dart`;
+five responsive/validation/error/accessibility widget cases in `test/app_test.dart`
+and two visual baselines in `test/design_golden_test.dart`. These establish local
+foundation behavior; household persistence and full authorization are M05 gates.
+
 | Requirement | Design screen(s) | Milestone | Acceptance/QA |
 |---|---|---|---|
 | H01 Household setup | S03–S05 | M05 | AUTH-01, restart |

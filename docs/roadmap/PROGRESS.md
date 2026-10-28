@@ -9,8 +9,8 @@
 | M00 | PASS | 66197519871eb2c037566f9cb52428f32f915555 | 2026-10-29 | `docs/verification/M00.md` | No Android AVD; production configuration absent |
 | M01 | PASS | 9a7d5562fc767b2da083e50a676bef2495c322fc | 2026-10-29 | `docs/verification/M01.md` | Runtime gates remain planned |
 | M02 | PASS | c607f3f22003ec2185099fc6e35c6c6c893c7c29 | 2026-10-29 | `docs/verification/M02.md` | 3 moderate dev-tool advisories tracked; runtime clean |
-| M03 | PASS | pending commit | 2026-10-29 | `docs/verification/M03.md` | Release asset review remains M16/M18 |
-| M04 | PLANNED | — | — | `docs/verification/M04.md` (to create) | — |
+| M03 | PASS | f8661f0901a220a7c4527ccc8f21daa8756b947e | 2026-10-29 | `docs/verification/M03.md` | Release asset review remains M16/M18 |
+| M04 | PASS | pending commit | 2026-10-29 | `docs/verification/M04.md` | Local demo configuration only; no Android AVD or live signing |
 | M05 | PLANNED | — | — | `docs/verification/M05.md` (to create) | — |
 | M06 | PLANNED | — | — | `docs/verification/M06.md` (to create) | — |
 | M07 | PLANNED | — | — | `docs/verification/M07.md` (to create) | — |

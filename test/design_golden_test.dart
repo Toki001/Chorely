@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:chorely/app/theme.dart';
 import 'package:chorely/features/onboarding/presentation/onboarding_screen.dart';

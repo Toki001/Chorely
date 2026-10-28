@@ -1,5 +1,11 @@
 # Chorely changes
 
+## M04 — 2026-10-29
+
+Added Android/iOS scaffolds, emulator-only Firebase startup, adult authentication
+and verification UI, repeatable local checks and CI configuration. Native iOS launch,
+Android debug build, static analysis and seven Flutter tests pass locally.
+
 ## M03 — 2026-10-29
 
 Created nine original household illustrations with provenance, adopted accessible
