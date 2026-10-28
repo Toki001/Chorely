@@ -1,0 +1,27 @@
+{
+  "product": "Chorely",
+  "kit_version": "1.0.0",
+  "date": "2026-10-29",
+  "kind": "documentation_and_design_reference_kit",
+  "implementation_status": "not started",
+  "app_release_status": "not built",
+  "reference_only_assets": [
+    "assets/design_references/01-lavender-cards.webp",
+    "assets/design_references/02-coral-task-ui.webp",
+    "assets/design_references/03-dark-dashboard.webp",
+    "assets/design_references/04-illustrated-onboarding.webp",
+    "assets/design_references/05-coral-design-overview.webp",
+    "assets/design_references/06-pastel-calendar.webp",
+    "assets/design_references/07-mint-clean-todo.webp"
+  ],
+  "required_entrypoints": [
+    "MASTER_PROMPT.md",
+    "AGENTS.md",
+    "CODEX.md",
+    "docs/roadmap/MILESTONES.md",
+    "docs/roadmap/PROGRESS.md"
+  ],
+  "sources": [
+    "docs/operations/SOURCES_AND_POLICY_CHECKS.md"
+  ]
+}
