@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'app/chorely_app.dart';
 import 'app/theme.dart';
 import 'features/auth/data/firebase_auth_repository.dart';
+import 'features/households/data/firebase_household_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +16,7 @@ Future<void> main() async {
     if (kDebugMode) debugPrint('Chorely: initializing local backend');
     await initializeDevelopmentBackend();
     if (kDebugMode) debugPrint('Chorely: backend configured');
-    runApp(ChorelyApp(auth: FirebaseAuthRepository(FirebaseAuth.instance)));
+    mountApplication();
   } catch (_) {
     runApp(
       MaterialApp(
@@ -43,6 +44,16 @@ Future<void> main() async {
     );
   }
 }
+
+void mountApplication() => runApp(
+  ChorelyApp(
+    auth: FirebaseAuthRepository(FirebaseAuth.instance),
+    households: FirebaseHouseholdRepository(
+      FirebaseFirestore.instance,
+      FirebaseFunctions.instance,
+    ),
+  ),
+);
 
 Future<void> initializeDevelopmentBackend() async {
   // No live project fallback. An authorized staging/prod configuration is a

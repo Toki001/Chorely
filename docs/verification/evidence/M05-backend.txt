@@ -1,0 +1,37 @@
+Local Auth/Firestore/Functions emulator tests; exit 0
+# Subtest: Callable ignores forged auth claims and denies unauthenticated/unverified/child callers
+ok 1 - Callable ignores forged auth claims and denies unauthenticated/unverified/child callers
+# Subtest: Real callable creates once and fresh signed-in client reads persisted household
+ok 2 - Real callable creates once and fresh signed-in client reads persisted household
+# Subtest: Two real adult tenants cannot read or write each other's household
+ok 3 - Two real adult tenants cannot read or write each other's household
+# Subtest: Adult creation persists household, role, index and one audit event
+ok 4 - Adult creation persists household, role, index and one audit event
+# Subtest: Concurrent retry creates exactly one tenant and changed payload replay fails
+ok 5 - Concurrent retry creates exactly one tenant and changed payload replay fails
+# Subtest: Anonymous, unverified, custom child identities and forged body role denied
+ok 6 - Anonymous, unverified, custom child identities and forged body role denied
+# Subtest: Invalid timezone, oversized text and malformed command ID denied before writes
+ok 7 - Invalid timezone, oversized text and malformed command ID denied before writes
+# Subtest: Revoked membership cannot retrieve accepted creation receipt
+ok 8 - Revoked membership cannot retrieve accepted creation receipt
+# Subtest: Household creation quota cannot be bypassed with new command IDs
+ok 9 - Household creation quota cannot be bypassed with new command IDs
+# Subtest: AUTH-01 anonymous and unrelated household reads denied
+ok 10 - AUTH-01 anonymous and unrelated household reads denied
+# Subtest: AUTH-01 active guardian reads own household and occurrences
+ok 11 - AUTH-01 active guardian reads own household and occurrences
+# Subtest: AUTH-02 child cannot elevate, mutate occurrence or read secrets
+ok 12 - AUTH-02 child cannot elevate, mutate occurrence or read secrets
+# Subtest: Child queries must restrict assigned scope; appropriate roster readable
+ok 13 - Child queries must restrict assigned scope; appropriate roster readable
+# Subtest: SYNC-03 revoked membership immediately denies server reads
+ok 14 - SYNC-03 revoked membership immediately denies server reads
+# Subtest: All client mutations denied even for guardian
+ok 15 - All client mutations denied even for guardian
+1..15
+# tests 15
+# pass 15
+# fail 0
+# skipped 0
+# duration_ms 9209.924416

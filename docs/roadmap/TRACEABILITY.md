@@ -11,6 +11,12 @@ five responsive/validation/error/accessibility widget cases in `test/app_test.da
 and two visual baselines in `test/design_golden_test.dart`. These establish local
 foundation behavior; household persistence and full authorization are M05 gates.
 
+M05 evidence: H01/H04 and AUTH-01 use `backend-tests/callable.test.mjs` (real
+Auth/Functions/Firestore clients) plus `backend-tests/households.test.mjs` for
+transaction/replay/quota/revocation cases. `test/households_test.dart` checks
+validation, retry identity, confirmed success and 320dp/200% text. Native creation
+and restart checks live in `integration_test/household{,_restart}_test.dart`.
+
 | Requirement | Design screen(s) | Milestone | Acceptance/QA |
 |---|---|---|---|
 | H01 Household setup | S03–S05 | M05 | AUTH-01, restart |

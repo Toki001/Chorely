@@ -12,6 +12,7 @@
     "format:check": "prettier --check functions/src backend-tests",
     "build": "npm run build --workspace functions",
     "test:rules": "firebase emulators:exec --only firestore --project demo-chorely 'node --test backend-tests/rules.test.mjs'",
+    "test:backend": "npm run build && firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node --test --test-concurrency=1 backend-tests/*.test.mjs'",
     "emulators": "npm run build && firebase emulators:start --only auth,firestore,functions --project demo-chorely"
   },
   "devDependencies": {

@@ -1,5 +1,11 @@
 # Chorely changes
 
+## M05 — 2026-10-29
+
+Implemented verified adult household creation, transactional guardian/profile/index
+setup, duplicate-safe retries and live household reads. Fifteen backend tests,
+nine Flutter tests and two native processes verify isolation and restart persistence.
+
 ## M04 — 2026-10-29
 
 Added Android/iOS scaffolds, emulator-only Firebase startup, adult authentication

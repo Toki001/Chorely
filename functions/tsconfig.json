@@ -6,6 +6,7 @@
     "outDir": "lib",
     "rootDir": "src",
     "strict": true,
+    "noEmitOnError": true,
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "skipLibCheck": true

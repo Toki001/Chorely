@@ -1,0 +1,22 @@
+Local iOS native creation and separate-process restart; overall exit 0
+00:00 +0: loading /Users/jameskierdoliguez/projects/chorely/integration_test/household_test.dart
+Xcode build done.                                           33.0s
+00:00 +0: Adult signs in, creates household and sees persisted data after app recreation
+Chorely: initializing local backend
+Chorely: Firebase initialized
+Chorely: Auth emulator configured
+Chorely: data emulators configured
+Chorely: backend configured
+00:05 +1: (tearDownAll)
+00:06 +1: All tests passed!
+PASS: native fixture home and guardian index persist on local server.
+00:00 +0: loading /Users/jameskierdoliguez/projects/chorely/integration_test/household_restart_test.dart
+Xcode build done.                                           25.0s
+00:00 +0: Fresh native process reads household created in the previous process
+Chorely: initializing local backend
+Chorely: Firebase initialized
+Chorely: Auth emulator configured
+Chorely: data emulators configured
+Chorely: backend configured
+00:04 +1: (tearDownAll)
+00:05 +1: All tests passed!

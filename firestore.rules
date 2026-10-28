@@ -19,7 +19,10 @@ service cloud.firestore {
       allow read: if signedIn() && request.auth.uid == uid;
       allow write: if false;
       match /households/{hid} {
-        allow read: if signedIn() && request.auth.uid == uid && active(hid);
+        // This server-maintained discovery index is private to its account.
+        // Queries cannot prove a join to every membership. Tenant documents
+        // below still require active membership; revocation removes this index.
+        allow read: if signedIn() && request.auth.uid == uid;
         allow write: if false;
       }
     }

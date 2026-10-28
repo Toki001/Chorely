@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'test_households.dart';
+
 import 'package:chorely/app/chorely_app.dart';
 import 'package:chorely/app/theme.dart';
 import 'package:chorely/features/auth/domain/auth_repository.dart';
@@ -125,7 +127,9 @@ void main() {
     (tester) async {
       final auth = TestAuth();
       addTearDown(auth.sessions.close);
-      await tester.pumpWidget(ChorelyApp(auth: auth));
+      await tester.pumpWidget(
+        ChorelyApp(auth: auth, households: TestHouseholds()),
+      );
       auth.sessions.add(
         const AccountSession(
           uid: 'fictional',

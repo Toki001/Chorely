@@ -25,6 +25,7 @@
 ## Suggested Firestore layout (exact security/rules to be validated)
 ```text
 users/{uid}
+users/{uid}/households/{householdId}               # server-maintained private discovery index
 households/{householdId}
 households/{householdId}/members/{actorId}
 households/{householdId}/profiles/{actorId}
@@ -40,6 +41,14 @@ invites/{inviteId}                                # server only
 pairedDevices/{opaqueDeviceId}                    # server only
 commands/{commandId}                              # server only
 ```
+
+M05 discovery index: an account can list only its own index. Rules cannot safely
+authorize that query by joining every result to a membership, so tenant data still
+checks active membership independently. Membership revocation must atomically
+remove the index (M06). An index never grants access or authority. Initial creation
+atomically writes home/member/profile/index/audit/receipt and caps account creation
+at five households to bound bootstrap abuse. This is a development policy pending
+review of account lifecycle limits in M16.
 
 ## Chore state machine
 `scheduled` -> `in_progress` (optional) -> `completed` OR `pending_review` -> `approved`/`needs_redo`. Also `missed`, `cancelled`, `skipped` with explicit policy. A task can be marked overdue based on current time without falsely mutating its base completion state. Changes must be validated against current authoritative state. Map child UI labels: 'To do', 'Done', 'Waiting for review', 'Need help', 'Past due'. Use deterministic event and notification semantics.
