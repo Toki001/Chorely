@@ -273,14 +273,41 @@ test("Real supervised custom identity sees assigned profile work and stale token
   const claims = (await child.auth.currentUser.getIdTokenResult()).claims;
   assert.equal(claims.scopedChild, true);
   assert.equal(claims.actorId, profileId);
+  const beforeClock = Date.now();
+  const clock = (
+    await child.call("getHouseholdClock", {
+      householdId: hid,
+      uid: guardian.auth.currentUser.uid,
+      role: "guardian",
+      serverNowMillis: 0,
+      timezoneIana: "America/New_York",
+    })
+  ).data;
+  assert.equal(clock.actorId, profileId);
+  assert.equal(clock.role, "child");
+  assert.equal(clock.canManage, false);
+  assert.equal(clock.timezoneIana, "Asia/Manila");
+  assert.equal(
+    clock.today,
+    householdDate(clock.serverNowMillis, "Asia/Manila"),
+  );
+  assert.ok(
+    clock.serverNowMillis >= beforeClock && clock.serverNowMillis <= Date.now(),
+  );
+
   await adminFirestore(admin)
     .doc(`households/${hid}/occurrences/assigned`)
-    .set({ assignedActorIds: [profileId], status: "scheduled" });
+    .set({
+      assignedActorIds: [profileId],
+      status: "scheduled",
+      localDate: "2026-10-29",
+    });
   await adminFirestore(admin)
     .doc(`households/${hid}/occurrences/private`)
     .set({
       assignedActorIds: [guardian.auth.currentUser.uid],
       status: "scheduled",
+      localDate: "2026-10-29",
     });
   assert.equal(
     (
@@ -293,6 +320,31 @@ test("Real supervised custom identity sees assigned profile work and stale token
   await assert.rejects(
     getDocFromServer(doc(child.db, `households/${hid}/occurrences/private`)),
     { code: "permission-denied" },
+  );
+  const calendar = (database, actorId) =>
+    query(
+      collection(database, `households/${hid}/occurrences`),
+      ...(actorId == null
+        ? []
+        : [where("assignedActorIds", "array-contains", actorId)]),
+      where("localDate", ">=", "2026-10-01"),
+      where("localDate", "<=", "2026-10-31"),
+    );
+  assert.deepEqual(
+    (await getDocs(calendar(child.db, profileId))).docs.map((d) => d.id),
+    ["assigned"],
+  );
+  assert.equal((await getDocs(calendar(guardian.db, null))).size, 2);
+  await assert.rejects(getDocs(calendar(child.db, null)), {
+    code: "permission-denied",
+  });
+  await assert.rejects(
+    getDocs(calendar(child.db, guardian.auth.currentUser.uid)),
+    { code: "permission-denied" },
+  );
+  await assert.rejects(
+    child.call("getHouseholdClock", { householdId: "foreign-home" }),
+    { code: "functions/permission-denied" },
   );
   await assert.rejects(
     getDocs(collection(child.db, `households/${hid}/invitations`)),
@@ -309,6 +361,9 @@ test("Real supervised custom identity sees assigned profile work and stale token
     kind: "device",
   });
   assert.equal(await child.auth.currentUser.getIdToken(), staleToken);
+  await assert.rejects(child.call("getHouseholdClock", { householdId: hid }), {
+    code: "functions/permission-denied",
+  });
   await assert.rejects(
     getDocFromServer(doc(child.db, `households/${hid}/occurrences/assigned`)),
     { code: "permission-denied" },

@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../shared/widgets/page_frame.dart';
 import '../../family/domain/family_repository.dart';
 import '../../households/domain/household_repository.dart';
+import '../../dashboard/domain/calendar_dates.dart';
 import '../domain/chore_repository.dart';
 
 class ChoreEditor extends StatefulWidget {
@@ -12,12 +13,14 @@ class ChoreEditor extends StatefulWidget {
     required this.repository,
     required this.family,
     this.base,
+    this.initialDate,
     super.key,
   });
   final Household home;
   final ChoreRepository repository;
   final FamilyRepository family;
   final ChoreOccurrence? base;
+  final String? initialDate;
   @override
   State<ChoreEditor> createState() => _ChoreEditorState();
 }
@@ -35,7 +38,7 @@ class _ChoreEditorState extends State<ChoreEditor> {
     text: widget.base?.draft.steps.join('\n'),
   );
   late final _date = TextEditingController(
-    text: widget.base?.draft.schedule['date'] as String?,
+    text: widget.base?.draft.schedule['date'] as String? ?? widget.initialDate,
   );
   late final _at = TextEditingController(
     text: widget.base?.draft.schedule['at'] as String? ?? '18:00',
@@ -352,9 +355,30 @@ class _ChoreEditorState extends State<ChoreEditor> {
               key: const ValueKey('chore-date'),
               controller: _date,
               enabled: !_locked,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Household date',
                 hintText: 'YYYY-MM-DD',
+                suffixIcon: IconButton(
+                  tooltip: 'Pick household date',
+                  onPressed: _locked
+                      ? null
+                      : () async {
+                          final current = _validDate(_date.text)
+                              ? parseCivilDate(_date.text)
+                              : null;
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: current,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100, 12, 31),
+                            helpText: 'Choose a household date',
+                          );
+                          if (picked != null && mounted) {
+                            _date.text = civilDate(picked);
+                          }
+                        },
+                  icon: const Icon(Icons.calendar_month_rounded),
+                ),
               ),
               validator: (v) => _validDate(v?.trim() ?? '')
                   ? null

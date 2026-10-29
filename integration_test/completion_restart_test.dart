@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/wait_for.dart';
+import 'support/hub.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +15,7 @@ void main() {
       await app.main();
       await FirebaseAuth.instance.signOut();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('I already have an account'));
+      await ensureReady(tester, find.text('I already have an account'));
       await tester.tap(find.text('I already have an account'));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -25,12 +26,24 @@ void main() {
         find.byType(TextFormField).at(1),
         'fictional-only-password-42',
       );
-      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
+      await ensureReady(tester, find.widgetWithText(FilledButton, 'Sign in'));
       await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
       await waitFor(tester, find.text('Native fictional home'));
       await tester.tap(find.text('Native fictional home'));
+      await waitFor(tester, find.text('1 of 1 finished'));
+      await openHubTab(tester, 2);
+      await waitFor(tester, find.text('Month'));
+      await tapHubControl(tester, find.text('Month'));
       await waitFor(tester, find.text('Cook rice'));
-      await tester.ensureVisible(find.text('Cook rice'));
+      const evidenceTag = String.fromEnvironment('CHORELY_EVIDENCE_TAG');
+      if (evidenceTag.isNotEmpty) {
+        await ensureReady(tester, find.text('Month'));
+        debugPrint('Chorely M10 persisted Calendar $evidenceTag ready');
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(seconds: 4)),
+        );
+      }
+      await ensureReady(tester, find.text('Cook rice'));
       await tester.tap(find.text('Cook rice'));
       await waitFor(tester, find.text('Approved'));
       await waitFor(tester, find.text('Approved the chore'));

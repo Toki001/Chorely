@@ -25,7 +25,7 @@ void main() {
         find.byType(TextFormField).at(1),
         'fictional-only-password-42',
       );
-      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
+      await ensureReady(tester, find.widgetWithText(FilledButton, 'Sign in'));
       await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
       await waitFor(tester, find.text('Your homes'));
       await waitFor(tester, find.text('Native fictional home'));
@@ -33,7 +33,10 @@ void main() {
       await tester.tap(find.text('Native fictional home'));
       await waitFor(tester, find.text('Alex'));
       expect(find.text('Alex'), findsOneWidget);
-      expect(find.text('Asia/Manila'), findsOneWidget);
+      expect(
+        find.textContaining('Household time · Asia/Manila'),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     },
   );

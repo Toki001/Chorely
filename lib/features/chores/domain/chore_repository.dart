@@ -56,6 +56,8 @@ class ChoreOccurrence {
     this.helpRequests = const [],
     this.completionRevision = 0,
     this.reviewNote,
+    this.dueAtUtc,
+    this.windowStartAtUtc,
   });
   final String id;
   final String templateId;
@@ -82,6 +84,13 @@ class ChoreOccurrence {
   final List<ChoreHelp> helpRequests;
   final int completionRevision;
   final String? reviewNote;
+  final DateTime? dueAtUtc;
+  final DateTime? windowStartAtUtc;
+  String get localDate => draft.schedule['date']! as String;
+  bool pastDueAt(DateTime now) =>
+      ['scheduled', 'needs_redo'].contains(status) &&
+      dueAtUtc != null &&
+      dueAtUtc!.isBefore(now);
   bool get cancellable => status == 'scheduled';
   bool get editable => cancellable && contributions.isEmpty;
   String get timingLabel {
@@ -108,6 +117,13 @@ class ChoreFailure implements Exception {
 
 abstract interface class ChoreRepository {
   RecurrenceRepository get recurrence;
+  Future<HouseholdClock> loadClock(String householdId);
+  Stream<List<ChoreOccurrence>> watchRange(
+    String householdId,
+    String fromDate,
+    String throughDate, {
+    String? actorId,
+  });
   Stream<ChoreActor?> watchActor(String householdId, String uid);
   Stream<HelpRequest?> watchHelp(String householdId, String requestId);
   Stream<List<ChoreActivity>> watchActivity(

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/wait_for.dart';
+import 'support/hub.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +15,7 @@ void main() {
       await app.main();
       await FirebaseAuth.instance.signOut();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('I already have an account'));
+      await ensureReady(tester, find.text('I already have an account'));
       await tester.tap(find.text('I already have an account'));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -25,21 +26,21 @@ void main() {
         find.byType(TextFormField).at(1),
         'fictional-only-password-42',
       );
-      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Sign in'));
+      await ensureReady(tester, find.widgetWithText(FilledButton, 'Sign in'));
       await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
       await waitFor(tester, find.text('Native fictional home'));
       await tester.tap(find.text('Native fictional home'));
       await waitFor(tester, find.text('Chores to share'));
+      await openTomorrow(tester);
       await tester.pumpAndSettle();
-      final assigned = find.ancestor(
-        of: find.textContaining('\nAssigned').first,
-        matching: find.byType(ListTile),
-      );
+      final assigned = find
+          .ancestor(of: find.text('Assigned'), matching: find.byType(Card))
+          .first;
       await waitFor(tester, assigned);
-      await tester.ensureVisible(assigned);
+      await ensureReady(tester, assigned);
       await tester.tap(assigned);
       await waitFor(tester, find.text('Repeat settings'));
-      await tester.ensureVisible(find.text('Repeat settings'));
+      await ensureReady(tester, find.text('Repeat settings'));
       await tester.tap(find.text('Repeat settings'));
       await tester.pumpAndSettle();
       expect(find.text('1. Alex'), findsOneWidget);
@@ -59,15 +60,15 @@ void main() {
       );
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Pause from the effective date'));
+      await ensureReady(tester, find.text('Pause from the effective date'));
       await tester.tap(find.text('Pause from the effective date'));
-      await tester.ensureVisible(find.text('Preview next 14 days'));
+      await ensureReady(tester, find.text('Preview next 14 days'));
       await tester.tap(find.text('Preview next 14 days'));
       await waitFor(
         tester,
         find.text('No turns from this version while it is paused.'),
       );
-      await tester.ensureVisible(find.text('Save repeat settings'));
+      await ensureReady(tester, find.text('Save repeat settings'));
       await tester.tap(find.text('Save repeat settings'));
       await waitUntilAbsent(tester, find.text('A rhythm for your home.'));
       await waitFor(tester, find.text('Chores to share'));

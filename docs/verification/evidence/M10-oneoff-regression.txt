@@ -1,0 +1,7 @@
+Local demo emulator only, iPhone 18 Pro/iOS 27.
+Xcode build done.                                           35.5s
+00:35 +1: All tests passed!
+PASS: chores_test stored scheduled revision 2, one template, one occurrence and preserved audit events.
+Xcode build done.                                           25.9s
+00:08 +1: All tests passed!
+PASS: chores_restart_test stored cancelled revision 3, one template, one occurrence and preserved audit events.

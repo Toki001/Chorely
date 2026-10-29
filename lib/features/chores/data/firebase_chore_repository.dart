@@ -35,6 +35,8 @@ class FirebaseChoreRepository implements ChoreRepository {
       effectiveDueLocal: d['effectiveDueLocal'] as String?,
       effectiveStartLocal: d['effectiveStartLocal'] as String?,
       schedulingReason: d['reason'] as String?,
+      dueAtUtc: (d['dueAtUtc'] as Timestamp?)?.toDate(),
+      windowStartAtUtc: (d['windowStartAtUtc'] as Timestamp?)?.toDate(),
       completionRevision: (d['completionRevision'] as num?)?.toInt() ?? 0,
       reviewNote: d['reviewNote'] as String?,
       contributions: Map<String, dynamic>.from(d['contributions'] as Map? ?? {})
@@ -268,5 +270,68 @@ class FirebaseChoreRepository implements ChoreRepository {
       );
     }
     await refresh(householdId, occurrenceId);
+  }
+
+  @override
+  Future<HouseholdClock> loadClock(String householdId) async {
+    try {
+      final data =
+          (await _functions
+                  .httpsCallable('getHouseholdClock')
+                  .call<Map<String, dynamic>>({'householdId': householdId}))
+              .data;
+      return HouseholdClock(
+        today: data['today'] as String,
+        timezone: data['timezoneIana'] as String,
+        serverNow: DateTime.fromMillisecondsSinceEpoch(
+          (data['serverNowMillis'] as num).toInt(),
+          isUtc: true,
+        ),
+        nextMidnight: DateTime.fromMillisecondsSinceEpoch(
+          (data['nextMidnightMillis'] as num).toInt(),
+          isUtc: true,
+        ),
+        actor: ChoreActor(
+          id: data['actorId'] as String,
+          role: data['role'] as String,
+          canManage: data['canManage'] == true,
+        ),
+      );
+    } on FirebaseFunctionsException {
+      throw const ChoreFailure(
+        'Couldn’t load your household day. Check your connection and access.',
+      );
+    }
+  }
+
+  @override
+  Stream<List<ChoreOccurrence>> watchRange(
+    String householdId,
+    String fromDate,
+    String throughDate, {
+    String? actorId,
+  }) {
+    Query<Map<String, dynamic>> query = _db
+        .collection('households/$householdId/occurrences')
+        .where('localDate', isGreaterThanOrEqualTo: fromDate)
+        .where('localDate', isLessThanOrEqualTo: throughDate);
+    if (actorId != null) {
+      query = query.where('assignedActorIds', arrayContains: actorId);
+    }
+    // An empty local cache is not evidence that a household has zero chores.
+    // M12 adds explicit cached/offline read state; this online hub waits for the
+    // server before reporting its first summary.
+    return query
+        .snapshots(includeMetadataChanges: true)
+        .where((s) => !s.metadata.isFromCache)
+        .map((s) {
+          final rows = s.docs.map(_read).toList();
+          rows.sort((a, b) {
+            final date = a.localDate.compareTo(b.localDate);
+            if (date != 0) return date;
+            return a.timingLabel.compareTo(b.timingLabel);
+          });
+          return rows;
+        });
   }
 }

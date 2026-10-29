@@ -88,6 +88,7 @@ async function participant(
   return {
     actorId,
     role,
+    household: home,
     canManage:
       role === "guardian" ||
       (role === "adult" && member.get("canAssign") === true),
@@ -436,3 +437,5 @@ export async function actOnOccurrence(
     throw error;
   }
 }
+
+export { participant as authorizeParticipant };

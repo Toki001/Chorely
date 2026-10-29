@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../chores/domain/chore_repository.dart';
-import '../../chores/presentation/chore_panel.dart';
+import '../../dashboard/presentation/household_hub.dart';
 import '../../../app/theme.dart';
 import '../../../shared/widgets/page_frame.dart';
 import '../../auth/domain/auth_repository.dart';
 import '../domain/household_repository.dart';
 import '../../family/domain/family_repository.dart';
-import '../../family/presentation/family_panel.dart';
 import '../../family/presentation/join_screen.dart';
 
 class HouseholdsScreen extends StatefulWidget {
@@ -356,94 +355,50 @@ class _HouseholdScreen extends StatefulWidget {
 class _HouseholdScreenState extends State<_HouseholdScreen> {
   late Stream<Household?> _home = widget.repository.watchHousehold(widget.id);
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      leading: IconButton(
-        tooltip: 'Back to your homes',
-        onPressed: widget.onBack,
-        icon: const Icon(Icons.arrow_back_rounded),
-      ),
-      title: const Text('Our household'),
-    ),
-    body: PageFrame(
-      child: StreamBuilder<Household?>(
-        stream: _home,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Column(
-              children: [
+  Widget build(BuildContext context) => StreamBuilder<Household?>(
+    stream: _home,
+    builder: (context, snapshot) {
+      if (snapshot.hasData && !snapshot.hasError) {
+        return HouseholdHub(
+          home: snapshot.data!,
+          uid: widget.uid,
+          repository: widget.chores,
+          family: widget.family,
+          onExit: widget.onBack,
+        );
+      }
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Our household'),
+          leading: IconButton(
+            tooltip: 'Back to your homes',
+            onPressed: widget.onBack,
+            icon: const Icon(Icons.arrow_back_rounded),
+          ),
+        ),
+        body: PageFrame(
+          child: Column(
+            children: [
+              if (snapshot.connectionState == ConnectionState.waiting &&
+                  !snapshot.hasError)
+                const LinearProgressIndicator(
+                  semanticsLabel: 'Loading household',
+                )
+              else ...[
                 const InlineError(
                   'This household is unavailable. Check your connection or ask a guardian about access.',
                 ),
                 TextButton(
-                  onPressed: () => setState(() {
-                    _home = widget.repository.watchHousehold(widget.id);
-                  }),
+                  onPressed: () => setState(
+                    () => _home = widget.repository.watchHousehold(widget.id),
+                  ),
                   child: const Text('Try again'),
                 ),
               ],
-            );
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(
-                semanticsLabel: 'Loading household',
-              ),
-            );
-          }
-          final home = snapshot.data;
-          if (home == null) {
-            return const InlineError('This household is no longer available.');
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: ChorelyColors.lavender,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.cottage_rounded,
-                      color: ChorelyColors.primary,
-                      size: 40,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      home.name,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(home.timezone),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 28),
-              ChorePanel(
-                home: home,
-                uid: widget.uid,
-                repository: widget.chores,
-                family: widget.family,
-              ),
-              const SizedBox(height: 28),
-              Text(
-                'The home team',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              FamilyPanel(
-                householdId: widget.id,
-                uid: widget.uid,
-                repository: widget.family,
-              ),
             ],
-          );
-        },
-      ),
-    ),
+          ),
+        ),
+      );
+    },
   );
 }

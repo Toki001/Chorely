@@ -125,3 +125,27 @@ conflict requires reload. Undo time is enforced by server acceptance, not a supp
 client clock. Private notes are readable only by their actor and chore managers;
 child UI never queries other actors' notes or privileged activity. Durable
 process-kill recovery remains M12.
+
+M10 adds Today/Chores/Calendar/Family destinations. Today uses the server-authorized
+household clock; calendar dates use the household zone, not the phone zone. Day,
+week and month views query actual occurrence slots. Everyone/Just me/member and
+status filters work for adults; supervised queries remain bound to their profile.
+Finished counts exclude pending review, partial work and cancelled/skipped slots.
+Selected dates prefill the creation form and have a date picker plus text input.
+
+The two-device dashboard runner uses fresh fictional demo fixtures, runs the full
+parent/child journey and restart on a booted tablet, then a fresh phone process
+reads the same approved calendar. With the available iOS 27 simulators:
+
+```sh
+npm run build
+npx firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/seed_family_fixture.mjs && node scripts/run_dashboard_native.mjs BD4FB3AE-CAC2-4E1B-9D7A-FCE4CCA17197 11D93CA0-385A-42CB-B905-449C8439EB01'
+```
+
+Do not run emulator suites concurrently. Native test helpers wait for real query
+results and settled scrolling/routes before tapping; a transition may briefly
+contain both old/new text. Exact single-result assertions remain enforced.
+Dashboard widgets additionally exercise 320×568dp and 800×1024dp at 200% text.
+Date-range reads are bounded by one day/week/month and cards display in batches
+of twenty. Large-household pagination/performance and durable offline recovery
+remain later gates. These commands never deploy indexes or create live resources.

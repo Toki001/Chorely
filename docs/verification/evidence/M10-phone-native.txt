@@ -1,0 +1,10 @@
+Local demo emulators only; fictional accounts. No live delivery/deployment or hardware claim.
+Xcode build done.                                           31.8s
+Chorely M10 child Today ready
+Chorely M10 guardian Today ready
+Chorely M10 guardian Calendar ready
+00:59 +1: All tests passed!
+PASS: completion_test stored approved revision 7, one current contribution, answered help, seven accepted events and one private denied self-review.
+Xcode build done.                                           25.8s
+00:07 +1: All tests passed!
+PASS: completion_restart_test stored approved revision 7, one current contribution, answered help, seven accepted events and one private denied self-review.

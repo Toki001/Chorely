@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'support/wait_for.dart';
+import 'support/hub.dart';
 
 // Run with seed_family_fixture.mjs against fresh local demo emulators.
 void main() {
@@ -15,7 +16,7 @@ void main() {
       await app.main();
       await FirebaseAuth.instance.signOut();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('I already have an account'));
+      await ensureReady(tester, find.text('I already have an account'));
       await tester.tap(find.text('I already have an account'));
       await tester.pumpAndSettle();
       Future<void> signIn() async {
@@ -27,9 +28,7 @@ void main() {
           find.byType(TextFormField).at(1),
           'fictional-only-password-42',
         );
-        await tester.ensureVisible(
-          find.widgetWithText(FilledButton, 'Sign in'),
-        );
+        await ensureReady(tester, find.widgetWithText(FilledButton, 'Sign in'));
         await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
         await waitFor(tester, find.text('Your homes'));
         await waitFor(tester, find.text('Native fictional home'));
@@ -38,25 +37,30 @@ void main() {
       }
 
       await signIn();
-      await tester.ensureVisible(find.text('Add a child profile'));
+      await openHubTab(tester, 3);
+      await ensureReady(tester, find.text('Add a child profile'));
       await tester.tap(find.text('Add a child profile'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField), 'Fictional child');
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Save child profile'));
+      await ensureReady(tester, find.text('Save child profile'));
       await tester.tap(find.text('Save child profile'));
       await waitFor(tester, find.textContaining('Child profile saved.'));
-      await tester.ensureVisible(find.text('Back to the home team'));
+      await ensureReady(tester, find.text('Back to the home team'));
       await tester.tap(find.text('Back to the home team'));
       await waitFor(tester, find.text('Fictional child'));
-      await tester.ensureVisible(find.text('Add a chore'));
+      await openHubTab(tester, 0);
+      await ensureReady(tester, find.text('Add a chore'));
       await tester.tap(find.text('Add a chore'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Cook rice'));
-      await tester.enterText(
-        find.byKey(const ValueKey('chore-date')),
-        '2026-10-30',
+      expect(
+        tester
+            .widget<TextFormField>(find.byKey(const ValueKey('chore-date')))
+            .controller!
+            .text,
+        matches(RegExp(r'^20\d{2}-\d{2}-\d{2}$')),
       );
       await tester.enterText(
         find.byKey(const ValueKey('chore-steps')),
@@ -64,21 +68,22 @@ void main() {
       );
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Add a teamwork illustration'));
+      await ensureReady(tester, find.text('Add a teamwork illustration'));
       await tester.tap(find.text('Add a teamwork illustration'));
-      await tester.ensureVisible(find.text('Fictional child'));
+      await ensureReady(tester, find.text('Fictional child'));
       await tester.tap(find.text('Fictional child'));
-      await tester.ensureVisible(find.text('Guardian review'));
+      await ensureReady(tester, find.text('Guardian review'));
       await tester.tap(find.text('Guardian review'));
-      await tester.ensureVisible(find.text('Save chore'));
+      await ensureReady(tester, find.text('Save chore'));
       await tester.tap(find.text('Save chore'));
       await waitUntilAbsent(tester, find.text('What needs doing?'));
       await waitFor(tester, find.text('Chores to share'));
       await waitFor(tester, find.text('Cook rice'));
-      await tester.ensureVisible(find.text('Link a device'));
+      await openHubTab(tester, 3);
+      await ensureReady(tester, find.text('Link a device'));
       await tester.tap(find.text('Link a device'));
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Approve and create code'));
+      await ensureReady(tester, find.text('Approve and create code'));
       await tester.tap(find.text('Approve and create code'));
       await waitFor(tester, find.text('A little independence.'));
       final code = tester
@@ -89,20 +94,20 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Sign out'));
       await waitFor(tester, find.text('Link a child device'));
-      await tester.ensureVisible(find.text('Link a child device'));
+      await ensureReady(tester, find.text('Link a child device'));
       await tester.tap(find.text('Link a child device'));
       await tester.pumpAndSettle();
       expect(find.text('Adult email'), findsNothing);
       await tester.enterText(find.byType(TextFormField), code);
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Link this device'));
+      await ensureReady(tester, find.text('Link this device'));
       await tester.tap(find.text('Link this device'));
       await waitFor(tester, find.text('Hi, Fictional child.'));
       expect(find.text('Invite an adult'), findsNothing);
       expect(find.text('Add a child profile'), findsNothing);
       await waitFor(tester, find.text('Cook rice'));
-      await tester.ensureVisible(find.text('Cook rice'));
+      await ensureReady(tester, find.text('Cook rice'));
       await tester.tap(find.text('Cook rice'));
       await waitFor(tester, find.text('Step by step'));
       expect(
@@ -128,15 +133,15 @@ void main() {
       );
       await tester.pageBack();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Leave supervised mode'));
+      await ensureReady(tester, find.text('Leave supervised mode'));
       await tester.tap(find.text('Leave supervised mode'));
       await waitFor(tester, find.text('Adult email'));
       expect(find.text('Your homes'), findsNothing);
       await signIn();
-      await tester.ensureVisible(find.text('Cook rice'));
+      await ensureReady(tester, find.text('Cook rice'));
       await tester.tap(find.text('Cook rice'));
       await waitFor(tester, find.text('Edit chore'));
-      await tester.ensureVisible(find.text('Edit chore'));
+      await ensureReady(tester, find.text('Edit chore'));
       await tester.tap(find.text('Edit chore'));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -145,7 +150,7 @@ void main() {
       );
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Save chore'));
+      await ensureReady(tester, find.text('Save chore'));
       await tester.tap(find.text('Save chore'));
       await waitUntilAbsent(tester, find.text('Make it clear.'));
       await waitFor(tester, find.text('Chore details'));

@@ -99,4 +99,46 @@ class TestChores implements ChoreRepository {
     ));
     if (actionFailure != null) throw actionFailure!;
   }
+
+  @override
+  Future<HouseholdClock> loadClock(String householdId) async {
+    if (clockFailure) throw const ChoreFailure('Clock unavailable');
+    return clock ??
+        HouseholdClock(
+          today: '2026-10-29',
+          timezone: 'Asia/Manila',
+          serverNow: DateTime.utc(2026, 10, 29, 4),
+          nextMidnight: DateTime.utc(2026, 10, 29, 16),
+          actor:
+              actor ??
+              ChoreActor(
+                id: 'guardian',
+                role: canManage ? 'guardian' : 'adult',
+                canManage: canManage,
+              ),
+        );
+  }
+
+  bool clockFailure = false;
+  HouseholdClock? clock;
+  final ranges = <({String from, String through, String? actor})>[];
+  @override
+  Stream<List<ChoreOccurrence>> watchRange(
+    String householdId,
+    String fromDate,
+    String throughDate, {
+    String? actorId,
+  }) {
+    ranges.add((from: fromDate, through: throughDate, actor: actorId));
+    return Stream.value(
+      chores
+          .where(
+            (c) =>
+                c.localDate.compareTo(fromDate) >= 0 &&
+                c.localDate.compareTo(throughDate) <= 0 &&
+                (actorId == null || c.draft.assignedActorIds.contains(actorId)),
+          )
+          .toList(),
+    );
+  }
 }

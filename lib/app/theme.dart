@@ -8,6 +8,7 @@ abstract final class ChorelyColors {
   static const lavender = Color(0xFFEEE9FF);
   static const mint = Color(0xFFE0F6EB);
   static const border = Color(0xFFE6E9F0);
+  static const attention = Color(0xFF955409);
 }
 
 ThemeData chorelyTheme() => ThemeData(

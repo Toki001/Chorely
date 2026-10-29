@@ -25,16 +25,14 @@ void main() {
           find.byType(TextFormField).at(1),
           'fictional-only-password-42',
         );
-        await tester.ensureVisible(
-          find.widgetWithText(FilledButton, 'Sign in'),
-        );
+        await ensureReady(tester, find.widgetWithText(FilledButton, 'Sign in'));
         await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
         await waitFor(tester, find.text('Your homes'));
         expect(find.text('Your homes'), findsOneWidget);
       }
 
       await signIn();
-      await tester.ensureVisible(find.text('Create a household'));
+      await ensureReady(tester, find.text('Create a household'));
       await tester.tap(find.text('Create a household'));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -44,12 +42,15 @@ void main() {
       await tester.enterText(find.byType(TextFormField).at(1), 'Alex');
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('Create household'));
+      await ensureReady(tester, find.text('Create household'));
       await tester.tap(find.text('Create household'));
-      await waitFor(tester, find.text('The home team'));
+      await waitFor(tester, find.text('Chores to share'));
       await waitFor(tester, find.text('Alex'));
       expect(find.text('Native fictional home'), findsOneWidget);
-      expect(find.text('Asia/Manila'), findsOneWidget);
+      expect(
+        find.textContaining('Household time · Asia/Manila'),
+        findsOneWidget,
+      );
       expect(find.text('Alex'), findsOneWidget);
       // Dispose the entire widget tree and its subscriptions, retaining only server data.
       await tester.pumpWidget(const SizedBox.shrink());

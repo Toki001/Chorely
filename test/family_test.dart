@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:chorely/app/chorely_app.dart';
 import 'package:chorely/app/theme.dart';
 import 'package:chorely/features/auth/domain/auth_repository.dart';
+import 'package:chorely/features/chores/domain/chore_repository.dart';
 import 'package:chorely/features/family/domain/access_code.dart';
 import 'package:chorely/features/family/domain/family_repository.dart';
 import 'package:chorely/features/family/presentation/family_panel.dart';
@@ -225,7 +226,12 @@ void main() {
         );
       await tester.pumpWidget(
         ChorelyApp(
-          chores: TestChores(),
+          chores: TestChores()
+            ..actor = const ChoreActor(
+              id: 'profile',
+              role: 'child',
+              canManage: false,
+            ),
           auth: auth,
           households: homes,
           family: family,

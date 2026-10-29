@@ -1,0 +1,7 @@
+Local demo emulator only, iPhone 18 Pro/iOS 27.
+Xcode build done.                                           34.2s
+00:24 +1: All tests passed!
+PASS: rotation_test persisted version 1, three-person order, 30 distinct recurring dates and preserved one-off history.
+Xcode build done.                                           26.2s
+00:14 +1: All tests passed!
+PASS: rotation_restart_test persisted version 2, three-person order, 30 distinct recurring dates and preserved one-off history.

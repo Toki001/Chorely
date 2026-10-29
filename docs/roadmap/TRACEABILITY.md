@@ -117,3 +117,14 @@ self-review denial, guardian acknowledgement/approval and persisted history. The
 runner asserts one current contribution, seven accepted events and one private
 denial record. Both rotation and one-off native regressions pass. See M09.md for
 exact counts, evidence and remaining offline/device/release gates.
+
+M10 implementation evidence: V01–V04/S09–S11/S17–S18/S21 map to
+`features/dashboard`, `household_clock.ts`, the scoped range index and live
+membership guards. `calendar_dates_test.dart` covers civil dates and
+`dashboard_test.dart` covers stored progress, day/member/status filters,
+selected-date creation, recovery and parent/child journeys at 320/800dp with
+200% text. Four pure clock cases and real bounded child/guardian range queries
+extend the backend suite to 74 cases. Native calendar/progress checks extend the
+existing completion and restart journeys; phone/tablet journeys and fresh-process reads pass. One-off and rotation native
+regressions also pass; 44 Flutter cases and 74 backend cases pass the final
+verification script. Exact evidence and release/device limits are in M10.md.

@@ -85,3 +85,16 @@ class ChoreActivity {
     _ => 'Updated this chore',
   };
 }
+
+class HouseholdClock {
+  const HouseholdClock({
+    required this.today,
+    required this.timezone,
+    required this.serverNow,
+    required this.nextMidnight,
+    required this.actor,
+  });
+  final String today, timezone;
+  final DateTime serverNow, nextMidnight;
+  final ChoreActor actor;
+}

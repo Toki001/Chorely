@@ -27,6 +27,20 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "occurrences",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "assignedActorIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "localDate",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [

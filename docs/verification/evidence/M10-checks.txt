@@ -1,0 +1,17 @@
+Commands: bash scripts/verify.sh; flutter build apk --debug. Both exit 0.
+Local verification only; no remote CI, live deployment or physical device result.
+Formatted 57 files (0 changed) in 0.19 seconds.
+No issues found! (ran in 4.3s)
+00:04 +44: All tests passed!
+All matched files use Prettier code style!
+# tests 74
+# pass 74
+# fail 0
+# skipped 0
+found 0 vulnerabilities
+PASS: 9 original art hashes/alpha/prompts; 4 explicit bundled assets; references excluded
+PASS: tracked source credential and machine-config guardrails
+PASS: 20 P0 requirements retain flow/screen/milestone/test mappings
+Running Gradle task 'assembleDebug'...
+Running Gradle task 'assembleDebug'...                              6.4s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
