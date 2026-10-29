@@ -48,6 +48,11 @@ service cloud.firestore {
         allow read: if adult(hid) || (child(hid) && actorId(hid) in resource.data.assignedActorIds);
         allow write: if false;
       }
+      match /recurrenceRules/{id} {
+        allow read: if adult(hid);
+        allow write: if false;
+        match /versions/{version} { allow read: if adult(hid); allow write: if false; }
+      }
       match /activity/{id} {
         allow read: if adult(hid);
         allow write: if false;

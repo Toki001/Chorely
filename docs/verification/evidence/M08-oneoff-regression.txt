@@ -1,0 +1,11 @@
+M08 native one-off regression — 2026-10-29
+seed_family_fixture.mjs + run_chores_native.mjs; demo-chorely loopback emulators
+iPhone 18 Pro / iOS 27 / 11D93CA0-385A-42CB-B905-449C8439EB01
+Exit: 0. Two separate native processes. Fictional fixtures only.
+
+Xcode build done.                                           36.1s
+00:26 +1: All tests passed!
+PASS: chores_test stored scheduled revision 2, one template, one occurrence and preserved audit events.
+Xcode build done.                                           26.3s
+00:05 +1: All tests passed!
+PASS: chores_restart_test stored cancelled revision 3, one template, one occurrence and preserved audit events.

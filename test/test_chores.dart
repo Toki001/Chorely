@@ -1,6 +1,10 @@
+import 'test_recurrence.dart';
+
 import 'package:chorely/features/chores/domain/chore_repository.dart';
 
 class TestChores implements ChoreRepository {
+  @override
+  final TestRecurrence recurrence = TestRecurrence();
   bool canManage = true;
   ChoreFailure? failure;
   final writes =

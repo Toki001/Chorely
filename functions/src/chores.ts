@@ -381,3 +381,6 @@ export async function writeOneOffChore(
     return result;
   });
 }
+
+// Reuse the same trusted content and permission boundary for recurring definitions.
+export { content as parseChoreContent, authorized as authorizeChoreManager };

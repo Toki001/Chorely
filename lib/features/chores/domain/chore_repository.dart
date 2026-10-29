@@ -1,3 +1,5 @@
+import 'recurrence_repository.dart';
+
 class ChoreDraft {
   const ChoreDraft({
     required this.title,
@@ -47,6 +49,7 @@ class ChoreOccurrence {
     required this.timeAdjusted,
     this.effectiveDueLocal,
     this.effectiveStartLocal,
+    this.schedulingReason,
   });
   final String id;
   final String templateId;
@@ -58,6 +61,17 @@ class ChoreOccurrence {
   final bool timeAdjusted;
   final String? effectiveDueLocal;
   final String? effectiveStartLocal;
+  final String? schedulingReason;
+  String get statusLabel => switch (status) {
+    'scheduled' => 'Assigned',
+    'skipped' => 'Skipped',
+    'cancelled' => 'Cancelled',
+    'completed' => 'Done',
+    'approved' => 'Approved',
+    'pending_review' => 'Waiting for review',
+    'needs_redo' => 'Try again',
+    _ => 'Status unavailable',
+  };
   bool get editable => status == 'scheduled';
   String get timingLabel {
     final date = draft.schedule['date'];
@@ -77,6 +91,7 @@ class ChoreFailure implements Exception {
 }
 
 abstract interface class ChoreRepository {
+  RecurrenceRepository get recurrence;
   Stream<bool> watchCanManage(String householdId, String uid);
   Stream<List<ChoreOccurrence>> watchChores(
     String householdId, {

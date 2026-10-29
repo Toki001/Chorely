@@ -37,6 +37,11 @@ import {
   httpsCallable,
 } from "firebase/functions";
 
+import {
+  householdDate,
+  addCivilDays,
+} from "../functions/lib/recurrence_engine.js";
+
 let admin;
 const clients = [];
 const password = "fictional-only-password-42";
@@ -437,6 +442,74 @@ test("Guardian creates Cook rice once; a paired assignee and fresh adult client 
   );
   assert.equal(saved.get("room"), "Kitchen");
   assert.equal(saved.get("instructionIllustrationKey"), "assign");
+  const tomorrow = addCivilDays(householdDate(Date.now(), "Asia/Manila"), 1);
+  const rule = {
+    frequency: "daily",
+    startDate: tomorrow,
+    endDate: null,
+    count: null,
+    weekdays: [],
+    monthDay: null,
+    timing: { kind: "deadline", at: "18:00", endAt: null, endDayOffset: 0 },
+    rotation: { order: [profileId], policy: "preserve_turn" },
+    exceptions: [],
+  };
+  const repeat = {
+    householdId: hid,
+    templateId: a.templateId,
+    commandId: randomUUID(),
+    baseTemplateVersion: 1,
+    baseRuleVersion: 0,
+    paused: false,
+    effectiveFrom: tomorrow,
+    expectedTimezone: "Asia/Manila",
+    rule,
+  };
+  const preview = (
+    await guardian.call("previewRecurrence", {
+      householdId: hid,
+      templateId: a.templateId,
+      rule,
+      fromDate: tomorrow,
+    })
+  ).data;
+  assert.equal(preview.slots.length, 14);
+  assert.equal((await guardian.call("saveRecurrence", repeat)).data.version, 1);
+  assert.equal(
+    (
+      await getDocFromServer(
+        doc(guardian.db, `households/${hid}/recurrenceRules/${a.templateId}`),
+      )
+    ).get("version"),
+    1,
+  );
+  await assert.rejects(child.call("saveRecurrence", repeat), {
+    code: "functions/permission-denied",
+  });
+  await assert.rejects(
+    getDocFromServer(
+      doc(child.db, `households/${hid}/recurrenceRules/${a.templateId}`),
+    ),
+    { code: "permission-denied" },
+  );
+  await assert.rejects(
+    outsider.call("refreshRecurrence", {
+      householdId: hid,
+      templateId: a.templateId,
+    }),
+    { code: "functions/permission-denied" },
+  );
+  const recurring = await getDocs(
+    query(
+      collection(child.db, `households/${hid}/occurrences`),
+      where("assignedActorIds", "array-contains", profileId),
+    ),
+  );
+  assert.equal(
+    recurring.docs.filter((d) => d.get("recurrenceVersion") === 1).length,
+    30,
+  );
+
   assert.deepEqual(saved.get("steps"), data.steps);
   await assert.rejects(
     child.call("writeOneOffChore", {

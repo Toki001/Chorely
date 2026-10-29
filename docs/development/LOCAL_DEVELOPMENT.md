@@ -83,3 +83,28 @@ session, edits as guardian, restarts, reads the persisted edit and cancels while
 preserving the template, occurrence and three audit events. Text instruction
 presets contain no cooking/safety guidance. Dates and times are entered explicitly
 in the household timezone. Completion actions arrive in M09; an optional original bundled illustration is available with an accessible label. There are no placeholder Done buttons or progress figures.
+
+The local recurrence timer uses the same trusted worker as the authored scheduled
+function, with strict demo/loopback checks. Start fresh scheduled emulators with:
+
+```sh
+npm run emulators:scheduled
+```
+
+This runs the worker once per minute while the emulators stay open. Cloud Scheduler
+is not deployed or created. A bounded worker pass can also run as
+`node scripts/local_recurrence_worker.mjs --once` inside the demo emulator command
+environment. Never point the local adapter at a live project.
+
+M08 native rotation verification (recorded results and limits are in M08.md):
+
+```sh
+npm run build
+npx firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/seed_rotation_fixture.mjs && node scripts/run_rotation_native.mjs 11D93CA0-385A-42CB-B905-449C8439EB01'
+```
+
+The runner starts/stops the loopback timer, checks fourteen previewed assignments,
+then uses a separate app process to read the turn order and apply a future pause.
+All accounts/profile names are fictional. Preview is required again after edits;
+uncertain saves retry the same frozen request. Today’s stored assignment is kept
+in place; rule changes affect future household dates.

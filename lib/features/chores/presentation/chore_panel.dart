@@ -6,6 +6,8 @@ import '../../family/domain/family_repository.dart';
 import '../../households/domain/household_repository.dart';
 import '../domain/chore_repository.dart';
 import 'chore_editor.dart';
+import 'recurrence_builder.dart';
+import '../domain/recurrence_repository.dart';
 
 class ChorePanel extends StatefulWidget {
   const ChorePanel({
@@ -96,7 +98,7 @@ class _ChorePanelState extends State<ChorePanel> {
                         ),
                         title: Text(chore.draft.title),
                         subtitle: Text(
-                          '${chore.timingLabel}\n${chore.timezone}\n${chore.status == 'cancelled' ? 'Cancelled' : 'Assigned'}',
+                          '${chore.timingLabel}\n${chore.timezone}\n${chore.statusLabel}',
                         ),
                         trailing: const Icon(Icons.chevron_right_rounded),
                         onTap: () => _open(
@@ -159,6 +161,7 @@ class _ChoreDetailState extends State<ChoreDetail> {
     widget.uid,
   );
   late final _people = widget.family.watchPeople(widget.home.id);
+  Stream<RecurrenceConfiguration?>? _configuration;
   String? _error;
   ChoreOccurrence? _archiveBase;
   String? _archiveCommand;
@@ -271,6 +274,9 @@ class _ChoreDetailState extends State<ChoreDetail> {
               const SizedBox(height: 16),
               Text(chore.timingLabel),
               Text(chore.timezone),
+              Text(chore.statusLabel),
+              if (chore.schedulingReason != null)
+                Text(recurrenceReasonLabel(chore.schedulingReason)),
               if (chore.timeAdjusted)
                 Text(
                   'Clock change: the valid window is ${chore.effectiveStartLocal ?? '—'} to ${chore.effectiveDueLocal}. Your requested times are shown above.',
@@ -340,44 +346,114 @@ class _ChoreDetailState extends State<ChoreDetail> {
                 key: const ValueKey('chore-detail-permission'),
                 stream: _permission,
                 builder: (context, permission) {
-                  if (permission.hasError ||
-                      permission.data != true ||
-                      !chore.editable) {
+                  if (permission.hasError || permission.data != true) {
                     return const SizedBox.shrink();
                   }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 24),
-                      OutlinedButton(
-                        onPressed: _busy || _archiveCommand != null
-                            ? null
-                            : () async {
-                                await Navigator.of(context).push<bool>(
-                                  MaterialPageRoute(
-                                    builder: (_) => ChoreEditor(
-                                      home: widget.home,
-                                      repository: widget.repository,
-                                      family: widget.family,
-                                      base: chore,
+                  _configuration ??= widget.repository.recurrence
+                      .watchConfiguration(widget.home.id, chore.templateId);
+                  return StreamBuilder<RecurrenceConfiguration?>(
+                    key: const ValueKey('chore-repeat-settings'),
+                    stream: _configuration,
+                    builder: (context, configuration) {
+                      if (configuration.hasError) {
+                        return Column(
+                          children: [
+                            const InlineError('Couldn’t load repeat settings.'),
+                            TextButton(
+                              onPressed: () => setState(
+                                () => _configuration = widget
+                                    .repository
+                                    .recurrence
+                                    .watchConfiguration(
+                                      widget.home.id,
+                                      chore.templateId,
                                     ),
-                                  ),
-                                );
-                                if (mounted) setState(() => _chore = _watch());
-                              },
-                        child: const Text('Edit chore'),
-                      ),
-                      TextButton(
-                        onPressed: _busy ? null : () => _archive(chore),
-                        child: Text(
-                          _busy
-                              ? 'Confirming cancellation…'
-                              : _archiveCommand == null
-                              ? 'Cancel chore'
-                              : 'Retry cancellation',
-                        ),
-                      ),
-                    ],
+                              ),
+                              child: const Text('Reload repeat settings'),
+                            ),
+                          ],
+                        );
+                      }
+                      if (configuration.connectionState ==
+                          ConnectionState.waiting) {
+                        return const LinearProgressIndicator(
+                          semanticsLabel: 'Loading repeat settings',
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 24),
+                          if (chore.editable || configuration.data != null)
+                            OutlinedButton(
+                              onPressed: _busy
+                                  ? null
+                                  : () async {
+                                      final saved = await Navigator.of(context)
+                                          .push<bool>(
+                                            MaterialPageRoute(
+                                              builder: (_) => RecurrenceBuilder(
+                                                home: widget.home,
+                                                base: chore,
+                                                repository: widget
+                                                    .repository
+                                                    .recurrence,
+                                                family: widget.family,
+                                                configuration:
+                                                    configuration.data,
+                                              ),
+                                            ),
+                                          );
+                                      if (mounted && context.mounted) {
+                                        if (saved == true) {
+                                          Navigator.of(context).pop(true);
+                                        } else {
+                                          setState(() => _chore = _watch());
+                                        }
+                                      }
+                                    },
+                              child: Text(
+                                configuration.data == null
+                                    ? 'Repeat this chore'
+                                    : 'Repeat settings',
+                              ),
+                            ),
+
+                          if (configuration.data == null && chore.editable)
+                            OutlinedButton(
+                              onPressed: _busy || _archiveCommand != null
+                                  ? null
+                                  : () async {
+                                      await Navigator.of(context).push<bool>(
+                                        MaterialPageRoute(
+                                          builder: (_) => ChoreEditor(
+                                            home: widget.home,
+                                            repository: widget.repository,
+                                            family: widget.family,
+                                            base: chore,
+                                          ),
+                                        ),
+                                      );
+                                      if (mounted) {
+                                        setState(() => _chore = _watch());
+                                      }
+                                    },
+                              child: const Text('Edit chore'),
+                            ),
+                          if (configuration.data == null && chore.editable)
+                            TextButton(
+                              onPressed: _busy ? null : () => _archive(chore),
+                              child: Text(
+                                _busy
+                                    ? 'Confirming cancellation…'
+                                    : _archiveCommand == null
+                                    ? 'Cancel chore'
+                                    : 'Retry cancellation',
+                              ),
+                            ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),

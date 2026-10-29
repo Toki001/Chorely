@@ -96,3 +96,14 @@ edit, fresh process persistence and cancellation. Completion/review execution is
 M09; C08 includes text steps and an optional allowlisted original bundled scene with
 an accessible label, per PRD. External uploads are outside the initial slice.
 No offline outbox acceptance is claimed here.
+
+M08 evidence: C04/C05/CHORE-05–09 map to `recurrence_engine.ts`,
+`recurrence_service.ts`, `recurrence_worker.ts`, scoped callable/rule reads and
+11 engine/12 service cases within the 58-case backend suite. Four recurrence
+widgets verify preview gating/invalidation, frozen retries, large text and controls.
+Native `rotation{,_restart}_test.dart` verifies all fourteen ordered preview turns,
+thirty stored dates, fresh-process settings and a future pause with preserved
+history. M07 native creation/child-read/edit/restart/cancel also regresses green.
+The local loopback timer invokes the same bounded worker as the authored scheduled
+entry point. Deployed scheduler/IAM/index rollout, household timezone setting UI,
+physical devices and Android runtime are explicitly not verified. See M08.md.

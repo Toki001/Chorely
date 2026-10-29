@@ -2,11 +2,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '../domain/chore_repository.dart';
+import '../domain/recurrence_repository.dart';
+import 'firebase_recurrence_repository.dart';
 
 class FirebaseChoreRepository implements ChoreRepository {
   FirebaseChoreRepository(this._db, this._functions);
   final FirebaseFirestore _db;
   final FirebaseFunctions _functions;
+  @override
+  late final RecurrenceRepository recurrence = FirebaseRecurrenceRepository(
+    _db,
+    _functions,
+  );
   @override
   Stream<bool> watchCanManage(String householdId, String uid) =>
       _db.doc('households/$householdId/members/$uid').snapshots().map((s) {
@@ -27,6 +34,7 @@ class FirebaseChoreRepository implements ChoreRepository {
       timeAdjusted: d['timeAdjusted'] == true,
       effectiveDueLocal: d['effectiveDueLocal'] as String?,
       effectiveStartLocal: d['effectiveStartLocal'] as String?,
+      schedulingReason: d['reason'] as String?,
       draft: ChoreDraft(
         title: d['title'] as String,
         category: d['category'] as String,

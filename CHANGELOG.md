@@ -1,5 +1,14 @@
 # Chorely changes
 
+## M08 — 2026-10-29
+
+Added versioned recurrence, household-time/DST policies, deterministic turn order,
+fourteen-day previews, future pauses and bounded automatic materialization. Stable
+date identities, leases and prior/new assignment audit preserve current/completed
+history and prevent duplicate work. Verified 58 backend and 23 Flutter tests,
+two native rotation processes, two native one-off regressions and Android build.
+Live scheduler deployment, index rollout and device gates remain unverified.
+
 ## M07 — 2026-10-29
 
 Added server-owned one-off chore creation, assignment, edit and cancellation with

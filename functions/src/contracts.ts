@@ -5,7 +5,8 @@ export type OccurrenceStatus =
   | "completed"
   | "approved"
   | "needs_redo"
-  | "cancelled";
+  | "cancelled"
+  | "skipped";
 export interface Actor {
   readonly uid: string;
   readonly email?: string;

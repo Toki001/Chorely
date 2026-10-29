@@ -83,3 +83,18 @@ requested schedule, effective household local times, IANA zone and UTC instants.
 A stable once-slot ID plus a payload-bound receipt prevents duplicate instances.
 Every edit checks both versions; cancellation preserves the occurrence and audit.
 See ADR-004 for actual bounds, DST policy and the optional bundled illustration allowlist.
+
+M08 recurrence storage adds `recurrenceRules/{templateId}/versions/{version}`,
+immutable definitions and a bounded current/future effective-date timeline. Root
+and version reads are adult-only; all writes remain trusted commands. Stable
+household/template/date occurrence IDs preserve identity across rule versions.
+Each occurrence records ordinal, planned actor, actual assignment, skip/substitute
+reason, template/rule versions, requested/effective timing and a canonical content
+hash. Future revisions audit prior/new assignees and status. Today's stored turn
+and terminal work stay intact during automatic reconciliation.
+
+`households/{hid}/schedulerLeases/{templateId}`, `schedulerState/recurrence` and
+`schedulerFailures/{opaqueHash}` are server-only operational records. The worker
+uses atomic per-rule work plus a global bounded scan/cursor. Deployment, index
+rollout and live scheduler IAM are not implied by locally authored configuration.
+See ADR-005 and M08 verification for actual evidence and remaining platform gates.

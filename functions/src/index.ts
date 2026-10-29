@@ -11,6 +11,9 @@ import { createHousehold as createHouseholdCommand } from "./households.js";
 import * as membership from "./membership.js";
 import * as child from "./child_access.js";
 import { writeOneOffChore as writeOneOffCommand } from "./chores.js";
+import * as recurrence from "./recurrence_service.js";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { runRecurrenceWorker } from "./recurrence_worker.js";
 initializeApp();
 function trustedActor(request: CallableRequest<unknown>): Actor | null {
   const auth = request.auth;
@@ -42,6 +45,22 @@ export const connectionStatus = onCall({ maxInstances: 2 }, (request) => {
 });
 export const createHousehold = command(createHouseholdCommand);
 export const writeOneOffChore = command(writeOneOffCommand);
+export const previewRecurrence = command(recurrence.previewRule);
+export const saveRecurrence = command(recurrence.saveRule);
+export const refreshRecurrence = command(recurrence.refreshRule);
+// Source only: deploying this billed scheduler remains an explicit release gate.
+export const recurringHorizon = onSchedule(
+  {
+    schedule: "every 6 hours",
+    timeZone: "Etc/UTC",
+    maxInstances: 1,
+    timeoutSeconds: 300,
+    retryCount: 0,
+  },
+  async () => {
+    await runRecurrenceWorker(getFirestore());
+  },
+);
 export const issueInvite = command(membership.issueInvite);
 export const acceptInvite = command(membership.acceptInvite);
 export const revokeInvite = command(membership.revokeInvite);
