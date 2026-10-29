@@ -1,3 +1,5 @@
+import '../../notifications/domain/notifications_repository.dart';
+
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -13,6 +15,7 @@ import '../../family/presentation/join_screen.dart';
 class HouseholdsScreen extends StatefulWidget {
   const HouseholdsScreen({
     required this.family,
+    required this.notifications,
     required this.chores,
     required this.session,
     required this.auth,
@@ -20,6 +23,7 @@ class HouseholdsScreen extends StatefulWidget {
     super.key,
   });
   final FamilyRepository family;
+  final NotificationsRepository notifications;
   final ChoreRepository chores;
   final AccountSession session;
   final AuthRepository auth;
@@ -63,6 +67,7 @@ class _HouseholdsScreenState extends State<HouseholdsScreen> {
         id: _selected!,
         uid: widget.session.uid,
         family: widget.family,
+        notifications: widget.notifications,
         chores: widget.chores,
         repository: widget.repository,
         onBack: () => setState(() => _selected = null),
@@ -336,6 +341,7 @@ class _HouseholdScreen extends StatefulWidget {
   const _HouseholdScreen({
     required this.uid,
     required this.family,
+    required this.notifications,
     required this.chores,
     required this.id,
     required this.repository,
@@ -345,6 +351,7 @@ class _HouseholdScreen extends StatefulWidget {
   final String id;
   final String uid;
   final FamilyRepository family;
+  final NotificationsRepository notifications;
   final ChoreRepository chores;
   final HouseholdRepository repository;
   final VoidCallback onBack;
@@ -364,6 +371,7 @@ class _HouseholdScreenState extends State<_HouseholdScreen> {
           uid: widget.uid,
           repository: widget.chores,
           family: widget.family,
+          notifications: widget.notifications,
           onExit: widget.onBack,
         );
       }

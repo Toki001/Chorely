@@ -1,3 +1,4 @@
+import 'test_notifications.dart';
 import 'test_chores.dart';
 
 import 'dart:async';
@@ -226,6 +227,7 @@ void main() {
         );
       await tester.pumpWidget(
         ChorelyApp(
+          notifications: TestNotifications(),
           chores: TestChores()
             ..actor = const ChoreActor(
               id: 'profile',

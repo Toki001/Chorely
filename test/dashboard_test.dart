@@ -1,3 +1,5 @@
+import 'test_notifications.dart';
+
 import 'dart:async';
 
 import 'package:chorely/app/theme.dart';
@@ -85,6 +87,7 @@ Future<void> mount(
         child: widget!,
       ),
       home: HouseholdHub(
+        notifications: TestNotifications(),
         home: home,
         uid: child ? 'device' : 'guardian',
         repository: repo,

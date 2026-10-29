@@ -1,3 +1,5 @@
+import { enqueueOccurrenceNotifications } from "./notification_outbox.js";
+import { assignmentNotificationState } from "./notification_assignment.js";
 import {
   Timestamp,
   type Firestore,
@@ -358,11 +360,13 @@ function apply(
     const value = {
       ...change.next,
       version,
+      ...assignmentNotificationState(change.before?.data(), change.next, now),
       materializationHash: change.signature,
       updatedAt: now,
     };
     if (change.before) tx.update(ref, value);
     else tx.create(ref, { ...value, createdAt: now });
+    enqueueOccurrenceNotifications(db, tx, hid, change.id, version, now);
     tx.create(
       db.doc(
         `households/${hid}/activity/${hash(JSON.stringify([change.id, version, change.signature]))}`,

@@ -17,7 +17,7 @@ Notifications should help, never nag or shame. Store preferences per household m
 
 ## Delivery architecture
 - Cloud Functions/job scheduler materializes notifications against authoritative chore occurrences and membership; server checks current status before send.
-- FCM/APNs handle remote delivery with tokens stored/rotated securely; Flutter local notifications for device-owned reminders only when permission/capability permits. Avoid duplicate local+remote messages; use shared stable logical IDs.
+- Authorized FCM/APNs setup must securely bind and rotate modern installation-ID registrations; Flutter local notifications for device-owned reminders only when permission/capability permits. Avoid duplicate local+remote messages; use shared stable logical IDs.
 - On Android 13+ notification permission prompt after value demonstrated; exact alarm permission only if justified; iOS APNs configuration and permission prompts required. Tested graceful fallback when denied or unregistered.
 - Notification text should minimize child PII; no full address, health info or invite secret in lock-screen notification.
 - Quiet hours, timezone and sleep: delay non-urgent events; emergency escalation is not a product feature.
@@ -28,3 +28,15 @@ Permission yes/no/revoked; foreground/background/terminated; iOS simulator/APNs 
 
 ## Observability
 Count attempted, accepted by provider, app-open conversions separately; provider accepted is not user delivered/read. Maintain rate limits and notification opt-outs. No child behavioral surveillance by default.
+
+## Current local implementation (M11)
+
+See ADR 008 and `docs/verification/M11.md`: private durable inbox/job reconciliation,
+quiet hours, current authorization, optional bounded device plans, native local
+adapter and debug-injected authenticated cold routes are implemented. The local
+verified slice is committed independently; M11 remains PARTIAL until authorized
+FCM/APNs registration, provider dispatch and physical delivery gates are met.
+Push is reserved in the schema but not offered for new policies or dispatched.
+Local ledger attempts are not OS display/delivery evidence. Unknown provider
+acceptance must never be retried as an assumed failure. Daily digests remain
+outside the initial event implementation and are not claimed available.

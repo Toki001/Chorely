@@ -21,7 +21,11 @@ function parseLocal(value: string): number {
 function localString(millis: number): string {
   return new Date(millis).toISOString().slice(0, 16);
 }
-export function resolveLocalMinute(requested: string, zone: string) {
+export function resolveLocalMinute(
+  requested: string,
+  zone: string,
+  overlap: "earlier" | "later" = "earlier",
+) {
   const naive = parseLocal(requested);
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: zone,
@@ -59,7 +63,10 @@ export function resolveLocalMinute(requested: string, zone: string) {
       .sort((a, b) => a - b);
     if (candidates.length)
       return {
-        utcMillis: candidates[0]!,
+        utcMillis:
+          overlap === "later"
+            ? candidates[candidates.length - 1]!
+            : candidates[0]!,
         effectiveLocal: localString(wall),
         adjusted: minutes !== 0,
       };

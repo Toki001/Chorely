@@ -1,3 +1,5 @@
+import '../../notifications/domain/notifications_repository.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../chores/domain/chore_repository.dart';
@@ -13,6 +15,7 @@ class ChildHomeScreen extends StatefulWidget {
     required this.auth,
     required this.households,
     required this.family,
+    required this.notifications,
     required this.chores,
     super.key,
   });
@@ -20,6 +23,7 @@ class ChildHomeScreen extends StatefulWidget {
   final AuthRepository auth;
   final HouseholdRepository households;
   final FamilyRepository family;
+  final NotificationsRepository notifications;
   final ChoreRepository chores;
   @override
   State<ChildHomeScreen> createState() => _ChildHomeScreenState();
@@ -83,6 +87,7 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
             uid: widget.session.uid,
             repository: widget.chores,
             family: widget.family,
+            notifications: widget.notifications,
             supervisedActorId: widget.session.profileId!,
             onExit: widget.auth.signOut,
           );

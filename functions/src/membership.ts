@@ -1,3 +1,4 @@
+import { enqueueHouseholdNotificationRefresh } from "./notification_outbox.js";
 import type { Firestore, Transaction } from "firebase-admin/firestore";
 import { Timestamp } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
@@ -241,6 +242,7 @@ export async function acceptInvite(
       entityId: actor.uid,
       serverAt: now,
     });
+    enqueueHouseholdNotificationRefresh(db, tx, hid, now);
     return { householdId: hid };
   });
 }
@@ -330,6 +332,7 @@ export async function revokeMember(
         serverAt: now,
       },
     );
+    enqueueHouseholdNotificationRefresh(db, tx, hid, now);
     return { revoked: true };
   });
 }

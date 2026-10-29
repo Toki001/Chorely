@@ -1,3 +1,5 @@
+import { enqueueOccurrenceNotifications } from "./notification_outbox.js";
+import { assignmentNotificationState } from "./notification_assignment.js";
 import type { Firestore, Transaction } from "firebase-admin/firestore";
 import { Timestamp } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
@@ -353,6 +355,10 @@ export async function writeOneOffChore(
         version,
         updatedAt: now,
       };
+      Object.assign(
+        concrete,
+        assignmentNotificationState(oldOccurrence.data(), concrete, now),
+      );
       if (action === "create") {
         tx.create(template, {
           ...definition,
@@ -366,6 +372,7 @@ export async function writeOneOffChore(
       }
     }
     const result = { templateId: id, occurrenceId, version };
+    enqueueOccurrenceNotifications(db, tx, hid, occurrenceId, version, now);
     tx.create(receipt, {
       uid: actor.uid,
       payloadHash,

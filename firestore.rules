@@ -14,6 +14,10 @@ service cloud.firestore {
     function child(hid) { return active(hid) && membership(hid).role == 'child'; }
     function guardian(hid) { return active(hid) && membership(hid).role == 'guardian'; }
     function actorId(hid) { return membership(hid).get('actorId', request.auth.uid); }
+    function notificationProfileActive(hid, id) {
+      let profile = get(/databases/$(database)/documents/households/$(hid)/profiles/$(id)).data;
+      return profile.role == 'child' ? profile.get('status', '') == 'active' : profile.get('status', 'active') == 'active';
+    }
 
     // All mutations cross the trusted command boundary. Auth UID is the actor
     // for adult and scoped child-device identities; no client-selected actor.
@@ -65,6 +69,19 @@ service cloud.firestore {
       match /invitations/{id} { allow read: if guardian(hid); allow write: if false; }
       match /pairings/{id} { allow read: if guardian(hid); allow write: if false; }
       match /devices/{id} { allow read: if guardian(hid); allow write: if false; }
+      match /notificationPreferences/{id} {
+        allow read: if active(hid) && notificationProfileActive(hid, id) && (actorId(hid) == id ||
+          (guardian(hid) && get(/databases/$(database)/documents/households/$(hid)/profiles/$(id)).data.role == 'child'));
+        allow write: if false;
+      }
+      match /notificationInbox/{id} {
+        allow read: if active(hid) && notificationProfileActive(hid, actorId(hid)) && resource.data.actorId == actorId(hid);
+        allow write: if false;
+      }
+      match /reminderPlanSignals/{id} {
+        allow read: if active(hid) && actorId(hid) == id && notificationProfileActive(hid, id);
+        allow write: if false;
+      }
       match /{document=**} { allow read, write: if false; }
     }
     match /{document=**} { allow read, write: if false; }

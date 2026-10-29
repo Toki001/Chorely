@@ -1,3 +1,10 @@
+import 'features/notifications/domain/notifications_repository.dart';
+import 'features/notifications/data/native_notification_device.dart';
+import 'features/notifications/data/sqlite_reminder_ledger.dart';
+import 'features/notifications/domain/device_reminders.dart';
+import 'features/notifications/presentation/device_reminder_scope.dart';
+import 'features/notifications/data/firebase_notifications_repository.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -47,24 +54,60 @@ Future<void> main() async {
   }
 }
 
-void mountApplication() => runApp(
-  ChorelyApp(
-    auth: FirebaseAuthRepository(FirebaseAuth.instance),
-    chores: FirebaseChoreRepository(
-      FirebaseFirestore.instance,
-      FirebaseFunctions.instance,
+void mountApplication() {
+  final notifications = FirebaseNotificationsRepository(
+    FirebaseFirestore.instance,
+    FirebaseFunctions.instance,
+  );
+  final device = NativeNotificationDevice();
+  final controller = DeviceReminderController(
+    notifications,
+    SqliteReminderLedger(),
+    device,
+  );
+  // Notification initialization failure cannot prevent access to household chores.
+  final ready = device.initialize().catchError((Object _) {});
+  runApp(
+    DeviceReminderScope(
+      controller: controller,
+      child: ChorelyApp(
+        auth: FirebaseAuthRepository(FirebaseAuth.instance),
+        notifications: notifications,
+        notificationLaunches: _ReadyNotificationLaunches(device, ready),
+        chores: FirebaseChoreRepository(
+          FirebaseFirestore.instance,
+          FirebaseFunctions.instance,
+        ),
+        family: FirebaseFamilyRepository(
+          FirebaseFirestore.instance,
+          FirebaseFunctions.instance,
+          FirebaseAuth.instance,
+        ),
+        households: FirebaseHouseholdRepository(
+          FirebaseFirestore.instance,
+          FirebaseFunctions.instance,
+        ),
+      ),
     ),
-    family: FirebaseFamilyRepository(
-      FirebaseFirestore.instance,
-      FirebaseFunctions.instance,
-      FirebaseAuth.instance,
-    ),
-    households: FirebaseHouseholdRepository(
-      FirebaseFirestore.instance,
-      FirebaseFunctions.instance,
-    ),
-  ),
-);
+  );
+}
+
+class _ReadyNotificationLaunches implements NotificationLaunchSource {
+  _ReadyNotificationLaunches(this.source, this.ready);
+  final NativeNotificationDevice source;
+  final Future<void> ready;
+  @override
+  Future<NotificationLink?> initial() async {
+    await ready;
+    const injected = String.fromEnvironment('CHORELY_TEST_NOTIFICATION');
+    // Native cold-process tests inject only an opaque route, never authority.
+    return (kDebugMode ? NotificationLink.parse(injected) : null) ??
+        await source.initial();
+  }
+
+  @override
+  Stream<NotificationLink> get taps => source.taps;
+}
 
 Future<void> initializeDevelopmentBackend() async {
   // No live project fallback. An authorized staging/prod configuration is a

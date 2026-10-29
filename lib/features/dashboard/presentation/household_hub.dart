@@ -1,3 +1,8 @@
+import '../../notifications/presentation/device_reminder_scope.dart';
+import '../../notifications/domain/device_reminders.dart';
+import '../../notifications/domain/notifications_repository.dart';
+import '../../notifications/presentation/updates_screen.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -20,6 +25,7 @@ class HouseholdHub extends StatefulWidget {
     required this.uid,
     required this.repository,
     required this.family,
+    required this.notifications,
     required this.onExit,
     this.supervisedActorId,
     super.key,
@@ -28,6 +34,7 @@ class HouseholdHub extends StatefulWidget {
   final String uid;
   final ChoreRepository repository;
   final FamilyRepository family;
+  final NotificationsRepository notifications;
   final String? supervisedActorId;
   final VoidCallback onExit;
   @override
@@ -36,6 +43,16 @@ class HouseholdHub extends StatefulWidget {
 
 class _HouseholdHubState extends State<HouseholdHub>
     with WidgetsBindingObserver {
+  DeviceReminderController? _reminders;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reminders = DeviceReminderScope.maybeOf(context);
+    if (_person != null) {
+      _reminders?.bind(widget.uid, widget.home.id, _person!.id);
+    }
+  }
+
   StreamSubscription<ChoreActor?>? _actorSubscription;
   StreamSubscription<List<FamilyPerson>>? _peopleSubscription;
   ChoreActor? _person;
@@ -87,6 +104,11 @@ class _HouseholdHubState extends State<HouseholdHub>
                 if (_person?.id != value?.id) _queryKey = null;
                 _person = value;
                 _actorReady = true;
+                if (value == null) {
+                  _reminders?.unbind(widget.home.id);
+                } else {
+                  _reminders?.bind(widget.uid, widget.home.id, value.id);
+                }
               });
             }
           },
@@ -94,6 +116,7 @@ class _HouseholdHubState extends State<HouseholdHub>
             if (mounted) {
               setState(() {
                 _person = null;
+                _reminders?.unbind(widget.home.id);
                 _actorReady = true;
                 _queryKey = null;
               });
@@ -131,7 +154,10 @@ class _HouseholdHubState extends State<HouseholdHub>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _loadClock();
+    if (state == AppLifecycleState.resumed) {
+      _loadClock();
+      _reminders?.refresh();
+    }
   }
 
   Future<void> _loadClock() async {
@@ -171,6 +197,7 @@ class _HouseholdHubState extends State<HouseholdHub>
 
   @override
   void dispose() {
+    _reminders?.unbind(widget.home.id);
     _actorSubscription?.cancel();
     _peopleSubscription?.cancel();
     _timer?.cancel();
@@ -220,6 +247,22 @@ class _HouseholdHubState extends State<HouseholdHub>
                 icon: const Icon(Icons.arrow_back_rounded),
               ),
         actions: [
+          IconButton(
+            tooltip: 'Your updates',
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: _person == null
+                ? null
+                : () => _open(
+                    UpdatesScreen(
+                      home: widget.home,
+                      uid: widget.uid,
+                      actor: _person!,
+                      repository: widget.notifications,
+                      chores: widget.repository,
+                      family: widget.family,
+                    ),
+                  ),
+          ),
           IconButton(
             tooltip: 'Refresh household day',
             onPressed: _loading ? null : _loadClock,

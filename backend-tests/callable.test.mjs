@@ -7,6 +7,7 @@ import {
 } from "firebase-admin/app";
 import { getFirestore as adminFirestore } from "firebase-admin/firestore";
 import { getAuth as adminAuth } from "firebase-admin/auth";
+import { reconcileOccurrenceNotifications } from "../functions/lib/notification_jobs.js";
 import { initializeApp, deleteApp } from "firebase/app";
 import {
   getAuth,
@@ -294,6 +295,64 @@ test("Real supervised custom identity sees assigned profile work and stale token
   assert.ok(
     clock.serverNowMillis >= beforeClock && clock.serverNowMillis <= Date.now(),
   );
+  const childSettings = (
+    await child.call("getNotificationPreferences", {
+      householdId: hid,
+      role: "guardian",
+      uid: guardian.auth.currentUser.uid,
+    })
+  ).data;
+  assert.equal(childSettings.actorId, profileId);
+  assert.equal(childSettings.canEdit, false);
+  assert.equal(childSettings.preferences.channel, "in_app");
+  const settingsRequest = {
+    householdId: hid,
+    actorId: profileId,
+    commandId: randomUUID(),
+    baseVersion: 0,
+    expectedTimezone: childSettings.timezoneIana,
+    preferences: { ...childSettings.preferences, reminderMinutes: 30 },
+  };
+  await assert.rejects(
+    child.call("saveNotificationPreferences", {
+      ...settingsRequest,
+      role: "guardian",
+    }),
+    { code: "functions/permission-denied" },
+  );
+  const settings = (
+    await guardian.call("saveNotificationPreferences", settingsRequest)
+  ).data;
+  assert.equal(settings.version, 1);
+  assert.equal(
+    (
+      await getDocFromServer(
+        doc(child.db, `households/${hid}/notificationPreferences/${profileId}`),
+      )
+    ).get("preferences").reminderMinutes,
+    30,
+  );
+  await assert.rejects(
+    setDoc(
+      doc(child.db, `households/${hid}/notificationPreferences/${profileId}`),
+      { preferences: { channel: "push" } },
+    ),
+    { code: "permission-denied" },
+  );
+  await guardian.call("saveNotificationPreferences", {
+    ...settingsRequest,
+    actorId: guardian.auth.currentUser.uid,
+    commandId: randomUUID(),
+  });
+  await assert.rejects(
+    getDocFromServer(
+      doc(
+        child.db,
+        `households/${hid}/notificationPreferences/${guardian.auth.currentUser.uid}`,
+      ),
+    ),
+    { code: "permission-denied" },
+  );
 
   await adminFirestore(admin)
     .doc(`households/${hid}/occurrences/assigned`)
@@ -364,6 +423,16 @@ test("Real supervised custom identity sees assigned profile work and stale token
   await assert.rejects(child.call("getHouseholdClock", { householdId: hid }), {
     code: "functions/permission-denied",
   });
+  await assert.rejects(
+    child.call("getNotificationPreferences", { householdId: hid }),
+    { code: "functions/permission-denied" },
+  );
+  await assert.rejects(
+    getDocFromServer(
+      doc(child.db, `households/${hid}/notificationPreferences/${profileId}`),
+    ),
+    { code: "permission-denied" },
+  );
   await assert.rejects(
     getDocFromServer(doc(child.db, `households/${hid}/occurrences/assigned`)),
     { code: "permission-denied" },
@@ -476,7 +545,11 @@ test("Guardian creates Cook rice once; a paired assignee and fresh adult client 
     assignedActorIds: [profileId],
     completionPolicy: "any_one_completes",
     reviewMode: "guardian",
-    schedule: { kind: "deadline", date: "2026-10-30", at: "18:00" },
+    schedule: {
+      kind: "deadline",
+      date: addCivilDays(householdDate(Date.now(), "Asia/Manila"), 1),
+      at: "18:00",
+    },
   };
   const a = (await guardian.call("writeOneOffChore", data)).data;
   const b = (await guardian.call("writeOneOffChore", data)).data;
@@ -490,6 +563,86 @@ test("Guardian creates Cook rice once; a paired assignee and fresh adult client 
   assert.equal(assignments.size, 1);
   assert.equal(assignments.docs[0].get("title"), "Cook rice");
   assert.equal(assignments.docs[0].get("reviewMode"), "guardian");
+  await reconcileOccurrenceNotifications(
+    adminFirestore(admin),
+    hid,
+    a.occurrenceId,
+  );
+  const ownInbox = await getDocs(
+    query(
+      collection(child.db, `households/${hid}/notificationInbox`),
+      where("actorId", "==", profileId),
+    ),
+  );
+  assert.equal(ownInbox.size, 1);
+  assert.equal(ownInbox.docs[0].get("event"), "assigned");
+  assert.equal(ownInbox.docs[0].get("body"), "A chore is ready for you.");
+  const opened = (
+    await child.call("openNotification", {
+      householdId: hid,
+      notificationId: ownInbox.docs[0].id,
+      role: "guardian",
+    })
+  ).data;
+  assert.equal(opened.available, true);
+  assert.equal(opened.occurrenceId, a.occurrenceId);
+  assert.equal(
+    (
+      await guardian.call("openNotification", {
+        householdId: hid,
+        notificationId: ownInbox.docs[0].id,
+      })
+    ).data.available,
+    false,
+  );
+  await assert.rejects(
+    getDocFromServer(
+      doc(
+        guardian.db,
+        `households/${hid}/notificationInbox/${ownInbox.docs[0].id}`,
+      ),
+    ),
+    { code: "permission-denied" },
+  );
+  await assert.rejects(
+    getDocs(collection(child.db, `households/${hid}/notificationInbox`)),
+    { code: "permission-denied" },
+  );
+  await assert.rejects(
+    getDocs(collection(child.db, `households/${hid}/notificationJobs`)),
+    { code: "permission-denied" },
+  );
+  await assert.rejects(
+    setDoc(
+      doc(
+        child.db,
+        `households/${hid}/notificationInbox/${ownInbox.docs[0].id}`,
+      ),
+      { readAt: new Date() },
+    ),
+    { code: "permission-denied" },
+  );
+  const signalPath = `households/${hid}/reminderPlanSignals/${profileId}`;
+  assert.ok((await getDocFromServer(doc(child.db, signalPath))).exists());
+  await assert.rejects(getDocFromServer(doc(guardian.db, signalPath)), {
+    code: "permission-denied",
+  });
+  await assert.rejects(setDoc(doc(child.db, signalPath), { version: 999 }), {
+    code: "permission-denied",
+  });
+  const localPlan = (
+    await child.call("getLocalNotificationPlan", {
+      householdId: hid,
+      actorId: guardian.auth.currentUser.uid,
+      role: "guardian",
+    })
+  ).data;
+  assert.equal(localPlan.actorId, profileId);
+  assert.equal(localPlan.policyEnabled, false);
+  await assert.rejects(
+    outsider.call("getLocalNotificationPlan", { householdId: hid }),
+    { code: "functions/permission-denied" },
+  );
   const fresh = client();
   await signInWithEmailAndPassword(fresh.auth, guardian.email, password);
   const saved = await getDocFromServer(

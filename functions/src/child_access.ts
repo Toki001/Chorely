@@ -1,3 +1,4 @@
+import { enqueueHouseholdNotificationRefresh } from "./notification_outbox.js";
 import type { Firestore } from "firebase-admin/firestore";
 import { Timestamp } from "firebase-admin/firestore";
 import type { Auth } from "firebase-admin/auth";
@@ -257,6 +258,7 @@ export async function redeemChildPairing(
       entityId: profileId,
       serverAt: now,
     });
+    enqueueHouseholdNotificationRefresh(db, tx, hid, now);
     return { uid, householdId: hid, profileId };
   });
   // Token minting follows the atomic claim. Same device proof can retry a lost
@@ -333,6 +335,7 @@ export async function revokeChildAccess(
       entityId: target,
       serverAt: now,
     });
+    enqueueHouseholdNotificationRefresh(db, tx, hid, now);
     return { revoked: true };
   });
 }

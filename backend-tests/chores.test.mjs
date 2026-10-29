@@ -60,6 +60,32 @@ const input = () => ({
   schedule: { kind: "time", date: "2026-10-30", at: "18:30" },
 });
 const path = (r) => `households/${hid}/occurrences/${r.occurrenceId}`;
+test("Assignment generation changes only when owners change, keeping unrelated edits from duplicating reminders", async () => {
+  const first = input();
+  const saved = await writeOneOffChore(db, guardian, first);
+  assert.equal((await db.doc(path(saved)).get()).get("assignmentRevision"), 1);
+  const edit = {
+    ...first,
+    action: "edit",
+    commandId: randomUUID(),
+    templateId: saved.templateId,
+    occurrenceId: saved.occurrenceId,
+    baseTemplateVersion: 1,
+    baseOccurrenceVersion: 1,
+    title: "Updated title",
+  };
+  await writeOneOffChore(db, guardian, edit);
+  assert.equal((await db.doc(path(saved)).get()).get("assignmentRevision"), 1);
+  await writeOneOffChore(db, guardian, {
+    ...edit,
+    commandId: randomUUID(),
+    baseTemplateVersion: 2,
+    baseOccurrenceVersion: 2,
+    assignedActorIds: [guardian.uid],
+    reviewMode: "none",
+  });
+  assert.equal((await db.doc(path(saved)).get()).get("assignmentRevision"), 2);
+});
 test("Concurrent retries persist one definition, one concrete assignment and one audit event", async () => {
   const data = input();
   const [a, b] = await Promise.all([

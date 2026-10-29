@@ -128,3 +128,17 @@ extend the backend suite to 74 cases. Native calendar/progress checks extend the
 existing completion and restart journeys; phone/tablet journeys and fresh-process reads pass. One-off and rotation native
 regressions also pass; 44 Flutter cases and 74 backend cases pass the final
 verification script. Exact evidence and release/device limits are in M10.md.
+
+M11 local evidence: N01/N02, S23/S25 and NOTIF-01–05 map to
+`notification_{assignment,time,plan,preferences,jobs,worker}.test.mjs`, actual
+Auth/Functions/Firestore assertions in `callable.test.mjs`,
+`test/{notifications,device_reminders}_test.dart` and native
+`integration_test/{notifications,notification_cold_start}_test.dart`. These cover
+quiet-hour/DST boundaries, stable logical IDs, re-enabled policies, bounded sweeps,
+private child scope, monotonic reads, cancellation, permission-denial fallback,
+uncertain retry/restart, identity changes, cold authorized route and deleted-target
+fallback. The native cold route injects opaque IDs and still requires persisted
+Auth/server access. Provider dispatch/FID rotation, physical OS permission and
+terminated/reboot delivery remain unverified external/device gates; M11 is
+PARTIAL, never evidence of production push acceptance/delivery. Details and
+screenshots are in `docs/verification/M11.md`.

@@ -149,3 +149,43 @@ Dashboard widgets additionally exercise 320×568dp and 800×1024dp at 200% text.
 Date-range reads are bounded by one day/week/month and cards display in batches
 of twenty. Large-household pagination/performance and durable offline recovery
 remain later gates. These commands never deploy indexes or create live resources.
+
+M11 adds private in-app updates, guardian-managed child policy and optional local
+reminders. Start both loopback recurrence and notification workers with:
+
+```sh
+npm run emulators:household
+```
+
+The recurrence adapter checks each minute; the inbox worker checks every two
+seconds. Both refuse live projects and non-loopback Firestore. `npm run emulators`
+still starts the services alone; use `emulators:notifications` for just the inbox
+worker or `emulators:scheduled` for just recurrence. Never run these emulator
+commands concurrently. Preferences and read acknowledgements use Functions; all
+client writes to preferences, inbox, plan signals and jobs are denied.
+
+For native notification verification, with a booted simulator:
+
+```sh
+npm run build
+npx firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/seed_notification_fixture.mjs && node scripts/run_notifications_native.mjs 11D93CA0-385A-42CB-B905-449C8439EB01'
+```
+
+This uses fictional guardian/child data, real Auth/Functions/Firestore and an
+opaque debug-only route injection in fresh app processes. It verifies inbox
+ownership, child completion, separate guardian review, read preservation, SQLite
+attempt persistence and deleted-target fallback. It does not test APNs/FCM
+provider delivery. Demo remote registration/auto-init are disabled; no live
+project fallback exists. Native initialization does not prompt for notification
+permission. The device switch requests permission only on explicit interaction;
+a guardian must also save the local reminder channel for supervised profiles.
+Denied permission leaves the in-app journey available.
+
+The local plan has at most 60 alerts in the next 24 hours. Android uses inexact
+alarms and may delay them; no exact alarm permission is requested. iOS reserves
+four of its 64 pending slots. Offline/terminated devices can retain an obsolete
+cached generic alert until reconnect; every tap still rechecks server authority.
+No delivery claim follows from a successful scheduling method. SQLite contains
+only opaque IDs/times/opt-in, with persistent collision-free integer OS IDs and
+at-most-once immediate attempts. A crash during an uncertain OS operation can
+lose an alert. See ADR 008 and M11.md for all remaining provider/device gates.

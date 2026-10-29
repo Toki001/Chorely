@@ -1,3 +1,10 @@
+import '../features/notifications/presentation/device_reminder_scope.dart';
+
+import 'dart:async';
+
+import '../features/notifications/domain/notifications_repository.dart';
+import '../features/chores/presentation/chore_panel.dart';
+
 import 'package:flutter/material.dart';
 
 import '../features/auth/domain/auth_repository.dart';
@@ -19,12 +26,16 @@ class ChorelyApp extends StatefulWidget {
     required this.households,
     required this.family,
     required this.chores,
+    required this.notifications,
+    this.notificationLaunches,
     super.key,
   });
   final AuthRepository auth;
   final HouseholdRepository households;
   final FamilyRepository family;
   final ChoreRepository chores;
+  final NotificationsRepository notifications;
+  final NotificationLaunchSource? notificationLaunches;
   @override
   State<ChorelyApp> createState() => _ChorelyAppState();
 }
@@ -33,6 +44,131 @@ class _ChorelyAppState extends State<ChorelyApp> {
   bool _introFinished = false;
   bool _linkChild = false;
   late final Stream<AccountSession?> _session = widget.auth.watchSession();
+  GlobalKey<NavigatorState> _navigator = GlobalKey<NavigatorState>();
+  StreamSubscription<NotificationLink>? _notificationTaps;
+  NotificationLink? _pendingLink;
+  AccountSession? _linkSession;
+  String? _linkUid, _activeNotificationRoute;
+  int _routeGeneration = 0;
+  bool _authLoading = true, _openingLink = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final source = widget.notificationLaunches;
+    if (source != null) {
+      _notificationTaps = source.taps.listen(
+        _receiveLink,
+        onError: (Object error) {},
+      );
+      source.initial().then((link) {
+        if (link != null && mounted) _receiveLink(link);
+      }, onError: (Object error) {});
+    }
+  }
+
+  @override
+  void dispose() {
+    _notificationTaps?.cancel();
+    super.dispose();
+  }
+
+  void _receiveLink(NotificationLink link) {
+    if (!mounted || link.encode() == _activeNotificationRoute) return;
+    setState(() => _pendingLink = link);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openPendingLink());
+  }
+
+  void _notificationFallback() {
+    final context = _navigator.currentContext;
+    if (context != null) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This update is unavailable for this session. Your home has the latest chores.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openPendingLink() async {
+    final session = _linkSession, link = _pendingLink;
+    if (!mounted ||
+        _authLoading ||
+        _openingLink ||
+        session == null ||
+        link == null ||
+        (!session.supervised && !session.verified)) {
+      return;
+    }
+    final actorId = session.supervised ? session.profileId : session.uid;
+    _pendingLink = null;
+    if (link.actorId != actorId) {
+      _notificationFallback();
+      return;
+    }
+    final generation = _routeGeneration;
+    _openingLink = true;
+    try {
+      final target = await widget.notifications.open(
+        link.householdId,
+        link.notificationId,
+      );
+      if (!mounted || generation != _routeGeneration) return;
+      if (target == null ||
+          target.actorId != actorId ||
+          target.householdId != link.householdId) {
+        _notificationFallback();
+        return;
+      }
+      final home = await widget.households
+          .watchHousehold(target.householdId)
+          .first;
+      if (!mounted || generation != _routeGeneration) return;
+      final navigator = _navigator.currentState;
+      if (home == null || navigator == null) {
+        _notificationFallback();
+        return;
+      }
+      final routeKey = link.encode();
+      _activeNotificationRoute = routeKey;
+      unawaited(
+        navigator
+            .push<void>(
+              MaterialPageRoute(
+                builder: (_) => ChoreDetail(
+                  home: home,
+                  occurrenceId: target.occurrenceId,
+                  uid: session.uid,
+                  repository: widget.chores,
+                  family: widget.family,
+                  supervised: session.supervised,
+                ),
+              ),
+            )
+            .then((_) {
+              if (generation == _routeGeneration &&
+                  _activeNotificationRoute == routeKey) {
+                _activeNotificationRoute = null;
+              }
+            }),
+      );
+    } catch (_) {
+      if (mounted && generation == _routeGeneration) _notificationFallback();
+    } finally {
+      if (generation == _routeGeneration) {
+        _openingLink = false;
+        if (_pendingLink?.encode() == link.encode()) _pendingLink = null;
+        if (mounted && _pendingLink != null) {
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => _openPendingLink(),
+          );
+        }
+      }
+    }
+  }
+
   Widget _home(AsyncSnapshot<AccountSession?> snapshot) {
     if (snapshot.hasError) {
       return Scaffold(
@@ -84,6 +220,7 @@ class _ChorelyAppState extends State<ChorelyApp> {
           households: widget.households,
           family: widget.family,
           chores: widget.chores,
+          notifications: widget.notifications,
         );
       }
       if (session.verified) {
@@ -94,6 +231,7 @@ class _ChorelyAppState extends State<ChorelyApp> {
           repository: widget.households,
           family: widget.family,
           chores: widget.chores,
+          notifications: widget.notifications,
         );
       }
       return AccountScreen(session: session, repository: widget.auth);
@@ -104,6 +242,12 @@ class _ChorelyAppState extends State<ChorelyApp> {
         repository: widget.family,
         onBack: () => setState(() => _linkChild = false),
         onJoined: (_) => setState(() => _linkChild = false),
+      );
+    }
+    if (_pendingLink != null) {
+      return AuthScreen(
+        repository: widget.auth,
+        onLinkChild: () => setState(() => _linkChild = true),
       );
     }
     if (!_introFinished) {
@@ -121,13 +265,33 @@ class _ChorelyAppState extends State<ChorelyApp> {
   @override
   Widget build(BuildContext context) => StreamBuilder<AccountSession?>(
     stream: _session,
-    builder: (context, snapshot) => MaterialApp(
-      // Auth identity changes discard route overlays and all previous profile UI.
-      key: ValueKey(snapshot.data?.uid ?? 'signed-out'),
-      title: 'Chorely',
-      debugShowCheckedModeBanner: false,
-      theme: chorelyTheme(),
-      home: _home(snapshot),
-    ),
+    builder: (context, snapshot) {
+      _linkSession = snapshot.hasError ? null : snapshot.data;
+      _authLoading =
+          snapshot.hasError ||
+          snapshot.connectionState == ConnectionState.waiting;
+      final uid = _linkSession?.uid;
+      DeviceReminderScope.maybeOf(context)?.identity(uid);
+      if (_linkUid != uid) {
+        if (_linkUid != null) _pendingLink = null;
+        _linkUid = uid;
+        _routeGeneration++;
+        _openingLink = false;
+        _activeNotificationRoute = null;
+        _navigator = GlobalKey<NavigatorState>();
+      }
+      if (_pendingLink != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _openPendingLink());
+      }
+      return MaterialApp(
+        // Auth identity changes discard route overlays and all previous profile UI.
+        key: ValueKey(uid ?? 'signed-out'),
+        navigatorKey: _navigator,
+        title: 'Chorely',
+        debugShowCheckedModeBanner: false,
+        theme: chorelyTheme(),
+        home: _home(snapshot),
+      );
+    },
   );
 }

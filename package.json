@@ -14,7 +14,9 @@
     "test:rules": "firebase emulators:exec --only firestore --project demo-chorely 'node --test backend-tests/rules.test.mjs'",
     "test:backend": "npm run build && firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node --test --test-concurrency=1 backend-tests/*.test.mjs'",
     "emulators": "npm run build && firebase emulators:start --only auth,firestore,functions --project demo-chorely",
-    "emulators:scheduled": "npm run build && firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/local_recurrence_worker.mjs'"
+    "emulators:scheduled": "npm run build && firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/local_recurrence_worker.mjs'",
+    "emulators:notifications": "npm run build && firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/local_notification_worker.mjs'",
+    "emulators:household": "npm run build && firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/local_household_workers.mjs'"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "5.0.2",

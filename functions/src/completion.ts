@@ -1,3 +1,4 @@
+import { enqueueOccurrenceNotifications } from "./notification_outbox.js";
 import {
   Timestamp,
   type Firestore,
@@ -372,6 +373,7 @@ export async function actOnOccurrence(
           "Daily chore action limit reached.",
         );
       tx.update(occurrence, patch);
+      enqueueOccurrenceNotifications(db, tx, hid, oid, version + 1, now);
       if (helpRef && helpPatch) {
         if (action === "help") tx.create(helpRef, helpPatch);
         else tx.update(helpRef, helpPatch);
