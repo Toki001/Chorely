@@ -282,6 +282,8 @@ async function plan(
     }
   }
   const frozen = (snapshot: DocumentSnapshot) => {
+    if (Object.keys(snapshot.get("contributions") ?? {}).length > 0)
+      return true;
     const date = snapshot.get("localDate") as string;
     const storedZone = snapshot.get("timezoneIana") as string;
     return date <= from || date <= householdDate(nowMillis, storedZone);
@@ -555,7 +557,8 @@ export async function saveRule(
     if (
       oneOff.exists &&
       oneOff.get("localDate") >= effectiveFrom &&
-      !["scheduled", "cancelled", "skipped"].includes(oneOff.get("status"))
+      (!["scheduled", "cancelled", "skipped"].includes(oneOff.get("status")) ||
+        Object.keys(oneOff.get("contributions") ?? {}).length > 0)
     )
       throw new HttpsError(
         "failed-precondition",

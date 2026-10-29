@@ -35,6 +35,30 @@ class FirebaseChoreRepository implements ChoreRepository {
       effectiveDueLocal: d['effectiveDueLocal'] as String?,
       effectiveStartLocal: d['effectiveStartLocal'] as String?,
       schedulingReason: d['reason'] as String?,
+      completionRevision: (d['completionRevision'] as num?)?.toInt() ?? 0,
+      reviewNote: d['reviewNote'] as String?,
+      contributions: Map<String, dynamic>.from(d['contributions'] as Map? ?? {})
+          .entries
+          .map((entry) {
+            final c = Map<String, dynamic>.from(entry.value as Map);
+            return ChoreContribution(
+              actorId: entry.key,
+              acceptedAt: (c['acceptedAt'] as Timestamp).toDate(),
+              completionRevision: (c['completionRevision'] as num).toInt(),
+            );
+          })
+          .toList(),
+      helpRequests: Map<String, dynamic>.from(d['helpRequests'] as Map? ?? {})
+          .entries
+          .map((entry) {
+            final h = Map<String, dynamic>.from(entry.value as Map);
+            return ChoreHelp(
+              actorId: entry.key,
+              requestId: h['requestId'] as String,
+              status: h['status'] as String,
+            );
+          })
+          .toList(),
       draft: ChoreDraft(
         title: d['title'] as String,
         category: d['category'] as String,
@@ -118,5 +142,131 @@ class FirebaseChoreRepository implements ChoreRepository {
         'Couldn’t refresh the saved chore. Check your connection and retry the same request.',
       );
     }
+  }
+
+  @override
+  Stream<ChoreActor?> watchActor(String householdId, String uid) =>
+      _db.doc('households/$householdId/members/$uid').snapshots().map((s) {
+        final d = s.data();
+        if (d?['status'] != 'active') return null;
+        final role = d?['role'] as String?;
+        if (!['guardian', 'adult', 'child'].contains(role)) return null;
+        final id = role == 'child' ? (d?['actorId'] as String?) : uid;
+        return id == null
+            ? null
+            : ChoreActor(
+                id: id,
+                role: role!,
+                canManage:
+                    role == 'guardian' ||
+                    (role == 'adult' && d?['canAssign'] == true),
+              );
+      });
+  @override
+  Stream<HelpRequest?> watchHelp(String householdId, String requestId) => _db
+      .doc('households/$householdId/helpRequests/$requestId')
+      .snapshots()
+      .map((s) {
+        final d = s.data();
+        return d == null
+            ? null
+            : HelpRequest(
+                id: s.id,
+                actorId: d['actorId'] as String,
+                note: d['note'] as String,
+                status: d['status'] as String,
+                responseNote: d['responseNote'] as String?,
+              );
+      });
+  @override
+  Stream<List<ChoreActivity>> watchActivity(
+    String householdId,
+    String occurrenceId,
+  ) => _db
+      .collection('households/$householdId/activity')
+      .where('entityId', isEqualTo: occurrenceId)
+      .orderBy('toVersion', descending: true)
+      .limit(30)
+      .snapshots()
+      .map(
+        (s) => s.docs.map((d) {
+          final v = d.data();
+          return ChoreActivity(
+            id: d.id,
+            actorId: v['actorId'] as String,
+            action: v['action'] as String,
+            serverAt: (v['serverAt'] as Timestamp).toDate(),
+            toStatus: v['toStatus'] as String?,
+            system: v['actorType'] == 'system',
+            reviewNote: v['reviewNote'] as String?,
+          );
+        }).toList(),
+      );
+  @override
+  Future<void> refresh(String householdId, String occurrenceId) async {
+    try {
+      await _db
+          .doc('households/$householdId/occurrences/$occurrenceId')
+          .get(const GetOptions(source: Source.server));
+    } on FirebaseException {
+      throw const ChoreFailure(
+        'Couldn’t reload this chore. Check your connection and access.',
+      );
+    }
+  }
+
+  @override
+  Future<void> act({
+    required String householdId,
+    required String occurrenceId,
+    required String commandId,
+    required String action,
+    required int baseVersion,
+    String note = '',
+    String? targetActorId,
+  }) async {
+    try {
+      await _functions.httpsCallable('actOnOccurrence').call<Object?>({
+        'householdId': householdId,
+        'occurrenceId': occurrenceId,
+        'commandId': commandId,
+        'action': action,
+        'baseVersion': baseVersion,
+        'note': note,
+        'targetActorId': ?targetActorId,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      final details = e.details is Map
+          ? Map<String, dynamic>.from(e.details as Map)
+          : <String, dynamic>{};
+      throw ChoreFailure(
+        switch (e.code) {
+          'aborted' => 'This chore changed on another device. Reload its latest state before trying again.',
+          'permission-denied' => 'This action isn’t available to your profile. Ask a guardian to check the task and your access.',
+          'unauthenticated' => 'Sign in again before changing this chore.',
+          'failed-precondition' =>
+            details['reason'] == 'undo_unavailable'
+                ? 'Undo is no longer available. It lasts five minutes and ends after a later completion or review.'
+                : 'This action is no longer available. Reload the chore to see its latest state.',
+          'invalid-argument' =>
+            'Check your note and reload the current chore before saving.',
+          'already-exists' => 'This request was already used. Reload the chore to check its saved state.',
+          'resource-exhausted' =>
+            'The daily action limit was reached. Try again later.',
+          _ => 'Couldn’t confirm this action. Check your connection and retry the same request.',
+        },
+        conflict: e.code == 'aborted',
+        retryable: ![
+          'aborted',
+          'permission-denied',
+          'unauthenticated',
+          'failed-precondition',
+          'invalid-argument',
+          'already-exists',
+          'resource-exhausted',
+        ].contains(e.code),
+      );
+    }
+    await refresh(householdId, occurrenceId);
   }
 }

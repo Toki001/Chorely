@@ -1,0 +1,13 @@
+M09 native completion gate — 2026-10-29
+iPhone 18 Pro / iOS 27 / 11D93CA0-385A-42CB-B905-449C8439EB01
+seed_family_fixture.mjs + run_completion_native.mjs, demo-chorely loopback emulators
+Exit: 0. Two separate app processes; fictional accounts/profiles only.
+
+Xcode build done.                                           33.5s
+Chorely M09 child pending view ready
+Chorely M09 guardian activity view ready
+00:26 +1: All tests passed!
+PASS: completion_test stored approved revision 7, one current contribution, answered help, seven accepted events and one private denied self-review.
+Xcode build done.                                           25.4s
+00:02 +1: All tests passed!
+PASS: completion_restart_test stored approved revision 7, one current contribution, answered help, seven accepted events and one private denied self-review.

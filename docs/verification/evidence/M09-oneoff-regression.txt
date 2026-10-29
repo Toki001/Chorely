@@ -1,0 +1,10 @@
+M09 native oneoff regression — 2026-10-29
+Demo loopback fixtures, two separate native app processes. Exit 0.
+iPhone 18 Pro / iOS 27 / 11D93CA0-385A-42CB-B905-449C8439EB01
+
+Xcode build done.                                           31.6s
+00:24 +1: All tests passed!
+PASS: chores_test stored scheduled revision 2, one template, one occurrence and preserved audit events.
+Xcode build done.                                           24.9s
+00:04 +1: All tests passed!
+PASS: chores_restart_test stored cancelled revision 3, one template, one occurrence and preserved audit events.

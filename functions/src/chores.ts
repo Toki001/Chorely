@@ -315,6 +315,14 @@ export async function writeOneOffChore(
           "This occurrence can no longer be edited or cancelled here.",
         );
     }
+    if (
+      action === "edit" &&
+      Object.keys(oldOccurrence.get("contributions") ?? {}).length > 0
+    )
+      throw new HttpsError(
+        "failed-precondition",
+        "This occurrence already has recorded work. Keep its instructions and assignment intact.",
+      );
     const hasChild = value ? await eligible(db, tx, hid, value) : false;
     const version = baseOccurrenceVersion + 1;
     if (action === "archive") {
@@ -376,6 +384,11 @@ export async function writeOneOffChore(
       templateId: id,
       fromVersion: baseOccurrenceVersion,
       toVersion: version,
+      fromAssignedActorIds: oldOccurrence.get("assignedActorIds") ?? [],
+      toAssignedActorIds:
+        value?.assignedActorIds ?? oldOccurrence.get("assignedActorIds") ?? [],
+      fromStatus: oldOccurrence.get("status") ?? null,
+      toStatus: action === "archive" ? "cancelled" : "scheduled",
       serverAt: now,
     });
     return result;

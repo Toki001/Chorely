@@ -107,3 +107,13 @@ history. M07 native creation/child-read/edit/restart/cancel also regresses green
 The local loopback timer invokes the same bounded worker as the authored scheduled
 entry point. Deployed scheduler/IAM/index rollout, household timezone setting UI,
 physical devices and Android runtime are explicitly not verified. See M08.md.
+
+M09 evidence: C06/C07/CHORE-02–04/CHORE-11 map to `completion.ts`, twelve
+completion service cases and expanded real two-device/guardian/private-help
+coverage within 70 backend tests. Six action widgets verify frozen retries, stored
+progress, self-review fencing, private notes and large text. Native
+`completion{,_restart}_test.dart` passes help/complete/undo/resubmit, actual callable
+self-review denial, guardian acknowledgement/approval and persisted history. The
+runner asserts one current contribution, seven accepted events and one private
+denial record. Both rotation and one-off native regressions pass. See M09.md for
+exact counts, evidence and remaining offline/device/release gates.

@@ -53,6 +53,11 @@ service cloud.firestore {
         allow write: if false;
         match /versions/{version} { allow read: if adult(hid); allow write: if false; }
       }
+      match /helpRequests/{id} {
+        allow read: if guardian(hid) || (adult(hid) && membership(hid).get('canAssign', false) == true)
+          || (active(hid) && resource.data.actorId == actorId(hid));
+        allow write: if false;
+      }
       match /activity/{id} {
         allow read: if adult(hid);
         allow write: if false;

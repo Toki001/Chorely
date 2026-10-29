@@ -1,6 +1,6 @@
 # Chorely Development Progress — Authoritative Tracker
 
-**Project status:** IN PROGRESS. Local M00–M08 gates verified; remaining implementation and release gates follow below.
+**Project status:** IN PROGRESS. Local M00–M09 gates verified; remaining implementation and release gates follow below.
 
 **Current branch:** main (new repository). **Current commit:** see Git log; milestone hashes recorded after each commit.
 
@@ -14,8 +14,8 @@
 | M05 | PASS | 85f7c0e1761d5ac3d91f0597b40b2bc127e1c9cd | 2026-10-29 | `docs/verification/M05.md` | Verified only on demo emulators; live account/consent review remains |
 | M06 | PASS | ccf64e513c37ed94f298c075e509d3ce709ed738 | 2026-10-29 | `docs/verification/M06.md` | Physical QR/camera, Android runtime and release credentials unverified |
 | M07 | PASS | 97dd5a544cc81e7d114b9e342a927284d4e87a97 | 2026-10-29 | `docs/verification/M07.md` | Local emulator gate; external media uploads outside initial slice; device/release gates remain |
-| M08 | PASS | Recorded after commit | 2026-10-29 | `docs/verification/M08.md` | Local worker/native gate; live scheduler/IAM, index rollout and devices remain unverified |
-| M09 | PLANNED | — | — | `docs/verification/M09.md` (to create) | — |
+| M08 | PASS | 51e9436c09f1778f97fd984a9595bf28381e8379 | 2026-10-29 | `docs/verification/M08.md` | Local worker/native gate; live scheduler/IAM, index rollout and devices remain unverified |
+| M09 | PASS | Recorded after commit | 2026-10-29 | `docs/verification/M09.md` | Local completion/review gate; durable outbox and device/release coverage remain |
 | M10 | PLANNED | — | — | `docs/verification/M10.md` (to create) | — |
 | M11 | PLANNED | — | — | `docs/verification/M11.md` (to create) | — |
 | M12 | PLANNED | — | — | `docs/verification/M12.md` (to create) | — |

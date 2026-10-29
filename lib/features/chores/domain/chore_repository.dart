@@ -1,4 +1,6 @@
 import 'recurrence_repository.dart';
+import 'chore_actions.dart';
+export 'chore_actions.dart';
 
 class ChoreDraft {
   const ChoreDraft({
@@ -50,6 +52,10 @@ class ChoreOccurrence {
     this.effectiveDueLocal,
     this.effectiveStartLocal,
     this.schedulingReason,
+    this.contributions = const [],
+    this.helpRequests = const [],
+    this.completionRevision = 0,
+    this.reviewNote,
   });
   final String id;
   final String templateId;
@@ -72,7 +78,12 @@ class ChoreOccurrence {
     'needs_redo' => 'Try again',
     _ => 'Status unavailable',
   };
-  bool get editable => status == 'scheduled';
+  final List<ChoreContribution> contributions;
+  final List<ChoreHelp> helpRequests;
+  final int completionRevision;
+  final String? reviewNote;
+  bool get cancellable => status == 'scheduled';
+  bool get editable => cancellable && contributions.isEmpty;
   String get timingLabel {
     final date = draft.schedule['date'];
     return switch (draft.schedule['kind']) {
@@ -85,13 +96,34 @@ class ChoreOccurrence {
 }
 
 class ChoreFailure implements Exception {
-  const ChoreFailure(this.message, {this.conflict = false});
+  const ChoreFailure(
+    this.message, {
+    this.conflict = false,
+    this.retryable = true,
+  });
   final String message;
   final bool conflict;
+  final bool retryable;
 }
 
 abstract interface class ChoreRepository {
   RecurrenceRepository get recurrence;
+  Stream<ChoreActor?> watchActor(String householdId, String uid);
+  Stream<HelpRequest?> watchHelp(String householdId, String requestId);
+  Stream<List<ChoreActivity>> watchActivity(
+    String householdId,
+    String occurrenceId,
+  );
+  Future<void> refresh(String householdId, String occurrenceId);
+  Future<void> act({
+    required String householdId,
+    required String occurrenceId,
+    required String commandId,
+    required String action,
+    required int baseVersion,
+    String note = '',
+    String? targetActorId,
+  });
   Stream<bool> watchCanManage(String householdId, String uid);
   Stream<List<ChoreOccurrence>> watchChores(
     String householdId, {

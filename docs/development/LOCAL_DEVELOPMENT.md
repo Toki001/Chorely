@@ -108,3 +108,20 @@ then uses a separate app process to read the turn order and apply a future pause
 All accounts/profile names are fictional. Preview is required again after edits;
 uncertain saves retry the same frozen request. Today’s stored assignment is kept
 in place; rule changes affect future household dates.
+
+Native completion/review verification uses fresh fictional fixtures and two app
+processes against the same local emulators:
+
+```sh
+npm run build
+npx firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/seed_family_fixture.mjs && node scripts/run_completion_native.mjs 11D93CA0-385A-42CB-B905-449C8439EB01'
+```
+
+The child requests help, submits, undoes and resubmits; a direct native callable
+attempt confirms self-approval is denied. A separately authenticated guardian
+answers help and approves. Restart verifies stored approval and version-ordered
+history. Commands keep a frozen ID/base/note after uncertain failure. A known
+conflict requires reload. Undo time is enforced by server acceptance, not a supplied
+client clock. Private notes are readable only by their actor and chore managers;
+child UI never queries other actors' notes or privileged activity. Durable
+process-kill recovery remains M12.

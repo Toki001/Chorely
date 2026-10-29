@@ -1,0 +1,90 @@
+M09 required checks — 2026-10-29
+Command: bash scripts/verify.sh (exit 0)
+Flutter 3.47.5 / Dart 3.13.4 / Node 22.23.4, demo-chorely loopback emulators
+
+No issues found! (ran in 4.1s)
+00:02 +29: All tests passed!
+ok 1 - Callable ignores forged auth claims and denies unauthenticated/unverified/child callers
+ok 2 - Real callable creates once and fresh signed-in client reads persisted household
+ok 3 - Two real adult tenants cannot read or write each other's household
+ok 4 - Real recipient-bound invite cannot promote adult; revoked token loses tenant access
+ok 5 - Real supervised custom identity sees assigned profile work and stale token is denied after device revoke
+ok 6 - Linking email/password to supervised identity never permits adult conversion
+ok 7 - Guardian creates Cook rice once; a paired assignee and fresh adult client see stored details with tenant isolation
+ok 8 - Concurrent retries persist one definition, one concrete assignment and one audit event
+ok 9 - Two concurrent edits produce one accepted revision and a visible version conflict
+ok 10 - Tenant outsiders, children, revoked members and ordinary adults cannot assign
+ok 11 - Invalid dates, unavailable assignees, duplicate team members and self-review are rejected
+ok 12 - Date-only and cross-midnight windows preserve household dates; completed history cannot be edited
+ok 13 - Household wall-clock resolver selects first valid gap minute and earlier overlap instant
+ok 14 - Daily quota blocks new chores while accepted retries remain safe
+ok 15 - Two devices for one child complete exactly once; accepted retry and changed payload are bound
+ok 16 - Child submission waits for a separate guardian; self-review is denied and privately logged
+ok 17 - All-member contributions are actual individual records; undo ends after a dependent completion
+ok 18 - A completing guardian cannot approve their own work even with a guardian role
+ok 19 - Redo needs a reason, clears current contributions and keeps previous audit; undo restores redo state
+ok 20 - Undo uses stored server acceptance time and ignores a forged client clock
+ok 21 - Help stores a private note, never completes, and a manager can acknowledge it without progress
+ok 22 - An independent help request does not remove the last contributor's valid undo
+ok 23 - Revocation, unrelated assignment, child profile removal and forged body role deny actions and receipts
+ok 24 - Partial recorded work cannot be silently edited; stale actions and cancelled occurrences fail
+ok 25 - Completing today's occurrence leaves the reusable definition and all future turns unchanged
+ok 26 - A future one-off with partial work cannot acquire a second active identity through recurrence conversion
+ok 27 - Adult creation persists household, role, index and one audit event
+ok 28 - Concurrent retry creates exactly one tenant and changed payload replay fails
+ok 29 - Anonymous, unverified, custom child identities and forged body role denied
+ok 30 - Invalid timezone, oversized text and malformed command ID denied before writes
+ok 31 - Revoked membership cannot retrieve accepted creation receipt
+ok 32 - Household creation quota cannot be bypassed with new command IDs
+ok 33 - Adult invite is recipient-bound, hashes codes, grants only intended role and retries safely
+ok 34 - Expired and revoked invites fail; non-guardian cannot issue or revoke
+ok 35 - Guardian removal preserves last guardian and atomically removes discovery index
+ok 36 - Adult member cannot add children, grant guardianship, pair devices or revoke membership
+ok 37 - Child profile stores no email or DOB and idempotent creation yields one profile
+ok 38 - Approved child pairing binds distinct device identity; replay from another device denied
+ok 39 - Expired/revoked pairing and revoked approving guardian cannot authorize new device
+ok 40 - Code entropy format and text/path validation reject malformed requests before writes
+ok 41 - Disabled approving account invalidates outstanding invite and pairing; daily limits enforced
+ok 42 - Fourteen daily turns match an anchored three-person rotation and partial previews
+ok 43 - Selected weekdays omit weekends and weekly cadence stays on its anchor weekday
+ok 44 - Month 31 skips nonexistent dates and count is global across independent query horizons
+ok 45 - Leap day, inclusive end and maximum count produce exact calendar slots
+ok 46 - Unavailable members preserve their turn; substitution never shifts later rotation history
+ok 47 - Explicit absence affects one date and keeps all later ordinals and scheduled owners
+ok 48 - DST gap/overlap and household zone are resolved explicitly without mutating rule inputs
+ok 49 - Cross-midnight recurring windows have concrete start/end instants
+ok 50 - Invalid rules, impossible dates, empty rotation and invalid preview horizons fail
+ok 51 - A DST gap that collapses a window is explicitly skipped while later slots survive
+ok 52 - A clock change cannot create a recurring window longer than seven UTC days
+ok 53 - Concurrent publication and duplicate/expired-lease worker passes never duplicate or inflate occurrences
+ok 54 - Future version changes preserve completed snapshots, reuse date identities and retain immutable rule history
+ok 55 - Pause is future effective; resuming future dates preserves recorded work and audit
+ok 56 - Removed rotation member is explicitly skipped, never silently replaced; restoration recomputes future state
+ok 57 - Tenant/capability boundaries, invalid effective dates, stale timezone and forged scope deny before writes
+ok 58 - A new future timezone version preserves stored prior UTC instants and old accepted retries
+ok 59 - Preview contains fourteen deterministic actual policy slots but never writes provisioned occurrences
+ok 60 - Bounded automatic worker respects a held global lease and advances a durable cursor across rules
+ok 61 - Corrupt rule history records a private failure while other schedules keep materializing
+ok 62 - Automatic unavailability reconciliation preserves today's stored owner and audits future reassignment
+ok 63 - A stored household date that already began never shifts when a new zone labels it as tomorrow
+ok 64 - A future edit replaces later pending settings so its preview matches stored turns; superseded versions remain
+ok 65 - AUTH-01 anonymous and unrelated household reads denied
+ok 66 - AUTH-01 active guardian reads own household and occurrences
+ok 67 - AUTH-02 child cannot elevate, mutate occurrence or read secrets
+ok 68 - Child queries must restrict assigned scope; appropriate roster readable
+ok 69 - SYNC-03 revoked membership immediately denies server reads
+ok 70 - All client mutations denied even for guardian
+# tests 70
+# suites 0
+# pass 70
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+found 0 vulnerabilities
+PASS: 9 original art hashes/alpha/prompts; 4 explicit bundled assets; references excluded
+PASS: tracked source credential and machine-config guardrails
+PASS: 20 P0 requirements retain flow/screen/milestone/test mappings
+
+Android debug build: exit 0, assembleDebug 13.1s.
+Pre-existing Firebase Kotlin Gradle migration warning remains.

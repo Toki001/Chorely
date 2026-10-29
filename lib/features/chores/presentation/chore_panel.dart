@@ -6,6 +6,7 @@ import '../../family/domain/family_repository.dart';
 import '../../households/domain/household_repository.dart';
 import '../domain/chore_repository.dart';
 import 'chore_editor.dart';
+import 'chore_actions.dart';
 import 'recurrence_builder.dart';
 import '../domain/recurrence_repository.dart';
 
@@ -45,7 +46,10 @@ class _ChorePanelState extends State<ChorePanel> {
   Widget build(BuildContext context) => StreamBuilder<bool>(
     stream: _permission,
     builder: (context, permission) {
-      final canManage = !permission.hasError && permission.data == true;
+      final canManage =
+          widget.actorId == null &&
+          !permission.hasError &&
+          permission.data == true;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -91,11 +95,14 @@ class _ChorePanelState extends State<ChorePanel> {
                     Card(
                       child: ListTile(
                         contentPadding: const EdgeInsets.all(16),
-                        leading: Icon(
-                          chore.status == 'cancelled'
-                              ? Icons.event_busy_rounded
-                              : Icons.task_alt_rounded,
-                        ),
+                        leading: Icon(switch (chore.status) {
+                          'completed' ||
+                          'approved' => Icons.check_circle_rounded,
+                          'pending_review' => Icons.hourglass_top_rounded,
+                          'needs_redo' => Icons.refresh_rounded,
+                          'cancelled' || 'skipped' => Icons.event_busy_rounded,
+                          _ => Icons.radio_button_unchecked_rounded,
+                        }),
                         title: Text(chore.draft.title),
                         subtitle: Text(
                           '${chore.timingLabel}\n${chore.timezone}\n${chore.statusLabel}',
@@ -106,6 +113,7 @@ class _ChorePanelState extends State<ChorePanel> {
                             home: widget.home,
                             occurrenceId: chore.id,
                             uid: widget.uid,
+                            supervised: widget.actorId != null,
                             repository: widget.repository,
                             family: widget.family,
                           ),
@@ -143,6 +151,7 @@ class ChoreDetail extends StatefulWidget {
     required this.uid,
     required this.repository,
     required this.family,
+    this.supervised = false,
     super.key,
   });
   final Household home;
@@ -150,6 +159,7 @@ class ChoreDetail extends StatefulWidget {
   final String uid;
   final ChoreRepository repository;
   final FamilyRepository family;
+  final bool supervised;
   @override
   State<ChoreDetail> createState() => _ChoreDetailState();
 }
@@ -274,7 +284,6 @@ class _ChoreDetailState extends State<ChoreDetail> {
               const SizedBox(height: 16),
               Text(chore.timingLabel),
               Text(chore.timezone),
-              Text(chore.statusLabel),
               if (chore.schedulingReason != null)
                 Text(recurrenceReasonLabel(chore.schedulingReason)),
               if (chore.timeAdjusted)
@@ -339,6 +348,16 @@ class _ChoreDetailState extends State<ChoreDetail> {
                     child: Text('${i + 1}. ${chore.draft.steps[i]}'),
                   ),
               ],
+              ChoreActions(
+                key: ValueKey('actions-${chore.id}-${widget.uid}'),
+                householdId: widget.home.id,
+                uid: widget.uid,
+                chore: chore,
+                repository: widget.repository,
+                family: widget.family,
+                supervised: widget.supervised,
+                onReload: () => setState(() => _chore = _watch()),
+              ),
               if (chore.status == 'cancelled')
                 const Text('This assignment was cancelled.'),
               if (_error != null) InlineError(_error!),
@@ -346,7 +365,9 @@ class _ChoreDetailState extends State<ChoreDetail> {
                 key: const ValueKey('chore-detail-permission'),
                 stream: _permission,
                 builder: (context, permission) {
-                  if (permission.hasError || permission.data != true) {
+                  if (widget.supervised ||
+                      permission.hasError ||
+                      permission.data != true) {
                     return const SizedBox.shrink();
                   }
                   _configuration ??= widget.repository.recurrence
@@ -384,7 +405,11 @@ class _ChoreDetailState extends State<ChoreDetail> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const SizedBox(height: 24),
-                          if (chore.editable || configuration.data != null)
+                          if (![
+                                'cancelled',
+                                'skipped',
+                              ].contains(chore.status) ||
+                              configuration.data != null)
                             OutlinedButton(
                               onPressed: _busy
                                   ? null
@@ -440,7 +465,7 @@ class _ChoreDetailState extends State<ChoreDetail> {
                                     },
                               child: const Text('Edit chore'),
                             ),
-                          if (configuration.data == null && chore.editable)
+                          if (configuration.data == null && chore.cancellable)
                             TextButton(
                               onPressed: _busy ? null : () => _archive(chore),
                               child: Text(

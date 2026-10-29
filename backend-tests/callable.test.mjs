@@ -509,6 +509,153 @@ test("Guardian creates Cook rice once; a paired assignee and fresh adult client 
     recurring.docs.filter((d) => d.get("recurrenceVersion") === 1).length,
     30,
   );
+  // A second actual scoped device for the same stable child profile.
+  const secondCode = randomBytes(32).toString("base64url");
+  await guardian.call("issueChildPairing", {
+    householdId: hid,
+    profileId,
+    nonce: secondCode,
+  });
+  const secondDevice = client();
+  const secondToken = (
+    await secondDevice.call("redeemChildPairing", {
+      nonce: secondCode,
+      deviceSecret: randomBytes(32).toString("base64url"),
+    })
+  ).data.customToken;
+  await signInWithCustomToken(secondDevice.auth, secondToken);
+  assert.notEqual(
+    secondDevice.auth.currentUser.uid,
+    child.auth.currentUser.uid,
+  );
+  const owned = recurring.docs.filter((d) => d.get("recurrenceVersion") === 1);
+  const action = {
+    householdId: hid,
+    occurrenceId: owned[0].id,
+    commandId: randomUUID(),
+    baseVersion: owned[0].get("version"),
+    action: "complete",
+  };
+  const otherAction = { ...action, commandId: randomUUID() };
+  const completed = await Promise.allSettled([
+    child.call("actOnOccurrence", action),
+    secondDevice.call("actOnOccurrence", otherAction),
+  ]);
+  assert.equal(completed.filter((r) => r.status === "fulfilled").length, 1);
+  assert.equal(
+    completed.find((r) => r.status === "rejected").reason.code,
+    "functions/aborted",
+  );
+  const winning =
+    completed[0].status === "fulfilled"
+      ? [child, action]
+      : [secondDevice, otherAction];
+  assert.equal(
+    (await winning[0].call("actOnOccurrence", winning[1])).data.status,
+    "pending_review",
+  );
+  await assert.rejects(
+    child.call("actOnOccurrence", {
+      ...action,
+      commandId: randomUUID(),
+      action: "approve",
+      baseVersion: 2,
+      role: "guardian",
+      actorId: guardian.auth.currentUser.uid,
+    }),
+    { code: "functions/permission-denied" },
+  );
+  assert.equal(
+    (
+      await guardian.call("actOnOccurrence", {
+        ...action,
+        commandId: randomUUID(),
+        action: "approve",
+        baseVersion: 2,
+      })
+    ).data.status,
+    "approved",
+  );
+  assert.equal(
+    (
+      await getDocFromServer(
+        doc(child.db, `households/${hid}/occurrences/${owned[0].id}`),
+      )
+    ).get("status"),
+    "approved",
+  );
+  const help = (
+    await child.call("actOnOccurrence", {
+      householdId: hid,
+      occurrenceId: owned[1].id,
+      commandId: randomUUID(),
+      baseVersion: 1,
+      action: "help",
+      note: "Please show the household steps.",
+    })
+  ).data;
+  assert.equal(help.status, "scheduled");
+  const helpState = await getDocFromServer(
+    doc(child.db, `households/${hid}/occurrences/${owned[1].id}`),
+  );
+  const requestId = helpState.get("helpRequests")[profileId].requestId;
+  assert.equal(
+    (
+      await getDocFromServer(
+        doc(secondDevice.db, `households/${hid}/helpRequests/${requestId}`),
+      )
+    ).get("note"),
+    "Please show the household steps.",
+  );
+  await assert.rejects(
+    getDocFromServer(
+      doc(outsider.db, `households/${hid}/helpRequests/${requestId}`),
+    ),
+    { code: "permission-denied" },
+  );
+  const unrelatedProfile = (
+    await guardian.call("addChildProfile", {
+      householdId: hid,
+      commandId: randomUUID(),
+      nickname: "Fictional other child",
+    })
+  ).data.profileId;
+  const unrelatedCode = randomBytes(32).toString("base64url");
+  await guardian.call("issueChildPairing", {
+    householdId: hid,
+    profileId: unrelatedProfile,
+    nonce: unrelatedCode,
+  });
+  const otherChild = client();
+  const otherToken = (
+    await otherChild.call("redeemChildPairing", {
+      nonce: unrelatedCode,
+      deviceSecret: randomBytes(32).toString("base64url"),
+    })
+  ).data.customToken;
+  await signInWithCustomToken(otherChild.auth, otherToken);
+  await assert.rejects(
+    getDocFromServer(
+      doc(otherChild.db, `households/${hid}/helpRequests/${requestId}`),
+    ),
+    { code: "permission-denied" },
+  );
+  await guardian.call("actOnOccurrence", {
+    householdId: hid,
+    occurrenceId: owned[1].id,
+    commandId: randomUUID(),
+    baseVersion: 2,
+    action: "resolve_help",
+    targetActorId: profileId,
+  });
+  assert.equal(
+    (
+      await getDocFromServer(
+        doc(child.db, `households/${hid}/helpRequests/${requestId}`),
+      )
+    ).get("status"),
+    "resolved",
+  );
 
   assert.deepEqual(saved.get("steps"), data.steps);
   await assert.rejects(

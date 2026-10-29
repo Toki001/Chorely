@@ -12,6 +12,7 @@ import * as membership from "./membership.js";
 import * as child from "./child_access.js";
 import { writeOneOffChore as writeOneOffCommand } from "./chores.js";
 import * as recurrence from "./recurrence_service.js";
+import { actOnOccurrence as occurrenceAction } from "./completion.js";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { runRecurrenceWorker } from "./recurrence_worker.js";
 initializeApp();
@@ -48,6 +49,7 @@ export const writeOneOffChore = command(writeOneOffCommand);
 export const previewRecurrence = command(recurrence.previewRule);
 export const saveRecurrence = command(recurrence.saveRule);
 export const refreshRecurrence = command(recurrence.refreshRule);
+export const actOnOccurrence = command(occurrenceAction);
 // Source only: deploying this billed scheduler remains an explicit release gate.
 export const recurringHorizon = onSchedule(
   {

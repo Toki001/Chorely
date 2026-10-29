@@ -24,7 +24,8 @@ export interface OccurrenceCommand {
   readonly occurrenceId: string;
   readonly commandId: string;
   readonly baseVersion: number;
-  readonly action: "complete" | "undo" | "help" | "approve" | "redo";
+  readonly action:
+    "complete" | "undo" | "help" | "approve" | "redo" | "resolve_help";
 }
 export type ConflictReason =
   | "already_done"

@@ -1,5 +1,12 @@
 # Chorely changes
 
+## M09 — 2026-10-29
+
+Added once-only contributions, bounded own undo, controlled guardian review/redo,
+private help requests/acknowledgement and real activity. Recorded work and future
+turns remain protected. Verified 70 backend tests, 29 Flutter tests, six native
+completion/rotation/one-off processes and Android debug build.
+
 ## M08 — 2026-10-29
 
 Added versioned recurrence, household-time/DST policies, deterministic turn order,
