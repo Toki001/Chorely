@@ -69,3 +69,17 @@ The runner checks the final persisted device state. Camera scanning starts only
 when requested; the simulator journey uses code entry. Physical-camera scanning
 and Android device runtime coverage remain unverified. Codes and device retry
 proofs must never be copied into reports, issues or analytics.
+
+One-off chore verification starts from the same fictional household fixture and
+runs two separate native processes, asserting the stored server state after each:
+
+```sh
+npm run build
+npx firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/seed_family_fixture.mjs && node scripts/run_chores_native.mjs 11D93CA0-385A-42CB-B905-449C8439EB01'
+```
+
+This creates Cook rice in the real guardian form, reads steps in a paired child
+session, edits as guardian, restarts, reads the persisted edit and cancels while
+preserving the template, occurrence and three audit events. Text instruction
+presets contain no cooking/safety guidance. Dates and times are entered explicitly
+in the household timezone. Completion actions arrive in M09; an optional original bundled illustration is available with an accessible label. There are no placeholder Done buttons or progress figures.

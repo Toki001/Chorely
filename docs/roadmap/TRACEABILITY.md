@@ -86,3 +86,13 @@ All entries are planned tests, not verification claims. Feature priorities come 
 | Privacy lifecycle | F11 | S23/S29/S30 | M16 | DATA-01/DATA-02 |
 | Accessible states | F16 | S31/S32/S33/S36/S37/S38 | M03/M16 | UI-01/UI-02/UI-03 |
 | Release | F01–F16 | All P0 | M17/M18/M19 | PERF-01/DATA-02 |
+
+M07 implementation evidence (verification gate tracked in M07.md): C01/C02/C03
+and text C08 use `functions/src/chores.ts`, `local_time.ts`, `backend-tests/chores.test.mjs`
+and the real Cook rice/scoped-assignee case in `callable.test.mjs`. Native UI is
+`features/chores` with retry/conflict/large-text/assignee tests in `test/chores_test.dart`.
+`integration_test/chores{,_restart}_test.dart` checks guardian creation, child details,
+edit, fresh process persistence and cancellation. Completion/review execution is
+M09; C08 includes text steps and an optional allowlisted original bundled scene with
+an accessible label, per PRD. External uploads are outside the initial slice.
+No offline outbox acceptance is claimed here.

@@ -28,6 +28,8 @@ import {
   setDoc,
   terminate,
   getDocFromServer,
+  query,
+  where,
 } from "firebase/firestore";
 import {
   getFunctions,
@@ -373,5 +375,91 @@ test("Linking email/password to supervised identity never permits adult conversi
       commandId: randomUUID(),
     }),
     { code: "functions/permission-denied" },
+  );
+});
+
+test("Guardian creates Cook rice once; a paired assignee and fresh adult client see stored details with tenant isolation", async () => {
+  const guardian = await account();
+  const outsider = await account();
+  const hid = (await guardian.create(request())).data.householdId;
+  const profileId = (
+    await guardian.call("addChildProfile", {
+      householdId: hid,
+      nickname: "Fictional child",
+      commandId: randomUUID(),
+    })
+  ).data.profileId;
+  const nonce = randomBytes(32).toString("base64url");
+  await guardian.call("issueChildPairing", {
+    householdId: hid,
+    profileId,
+    nonce,
+  });
+  const child = client();
+  const token = (
+    await child.call("redeemChildPairing", {
+      nonce,
+      deviceSecret: randomBytes(32).toString("base64url"),
+    })
+  ).data.customToken;
+  await signInWithCustomToken(child.auth, token);
+  const data = {
+    action: "create",
+    householdId: hid,
+    commandId: randomUUID(),
+    title: "Cook rice",
+    instructionIllustrationKey: "assign",
+    category: "dinner",
+    description: "Fictional household instructions",
+    room: "Kitchen",
+    steps: ["Ask Alex for household instructions."],
+    assignedActorIds: [profileId],
+    completionPolicy: "any_one_completes",
+    reviewMode: "guardian",
+    schedule: { kind: "deadline", date: "2026-10-30", at: "18:00" },
+  };
+  const a = (await guardian.call("writeOneOffChore", data)).data;
+  const b = (await guardian.call("writeOneOffChore", data)).data;
+  assert.deepEqual(a, b);
+  const assignments = await getDocs(
+    query(
+      collection(child.db, `households/${hid}/occurrences`),
+      where("assignedActorIds", "array-contains", profileId),
+    ),
+  );
+  assert.equal(assignments.size, 1);
+  assert.equal(assignments.docs[0].get("title"), "Cook rice");
+  assert.equal(assignments.docs[0].get("reviewMode"), "guardian");
+  const fresh = client();
+  await signInWithEmailAndPassword(fresh.auth, guardian.email, password);
+  const saved = await getDocFromServer(
+    doc(fresh.db, `households/${hid}/occurrences/${a.occurrenceId}`),
+  );
+  assert.equal(saved.get("room"), "Kitchen");
+  assert.equal(saved.get("instructionIllustrationKey"), "assign");
+  assert.deepEqual(saved.get("steps"), data.steps);
+  await assert.rejects(
+    child.call("writeOneOffChore", {
+      ...data,
+      commandId: randomUUID(),
+      role: "guardian",
+    }),
+    { code: "functions/permission-denied" },
+  );
+  await assert.rejects(
+    outsider.call("writeOneOffChore", { ...data, commandId: randomUUID() }),
+    { code: "functions/permission-denied" },
+  );
+  await assert.rejects(
+    getDocFromServer(
+      doc(outsider.db, `households/${hid}/occurrences/${a.occurrenceId}`),
+    ),
+    { code: "permission-denied" },
+  );
+  await assert.rejects(
+    setDoc(doc(child.db, `households/${hid}/occurrences/${a.occurrenceId}`), {
+      title: "Forged",
+    }),
+    { code: "permission-denied" },
   );
 });

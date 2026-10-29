@@ -21,8 +21,7 @@ credentials; no navigation-only gate. Pairing server flow must mint single-use,
 hashed, expiring nonces, bind the approved actor, and revoke all paired memberships
 on unlink. Child pairing endpoints are not implemented by this decision.
 
-Server transaction command envelope: householdId, entityId, commandId (128-bit
-random minimum), baseVersion and action. Actor comes from token. Idempotency
+Server transaction command envelope: householdId, entityId, commandId (UUIDv4: 128-bit identifier with 122 random bits), baseVersion and action. Actor comes from token. Idempotency
 receipt path is scoped by UID+command ID, includes canonical payload hash and
 result; reusing an ID with a changed payload is rejected. Replayed accepted
 commands recheck membership before returning receipt. Rate limits are transactional.

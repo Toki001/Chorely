@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../chores/domain/chore_repository.dart';
+import '../../chores/presentation/chore_panel.dart';
 import '../../../shared/widgets/page_frame.dart';
 import '../../auth/domain/auth_repository.dart';
 import '../../households/domain/household_repository.dart';
@@ -11,12 +13,14 @@ class ChildHomeScreen extends StatefulWidget {
     required this.auth,
     required this.households,
     required this.family,
+    required this.chores,
     super.key,
   });
   final AccountSession session;
   final AuthRepository auth;
   final HouseholdRepository households;
   final FamilyRepository family;
+  final ChoreRepository chores;
   @override
   State<ChildHomeScreen> createState() => _ChildHomeScreenState();
 }
@@ -100,6 +104,14 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
                           Text(
                             'You’re part of ${home.data!.name}.',
                             style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 24),
+                          ChorePanel(
+                            home: home.data!,
+                            uid: widget.session.uid,
+                            actorId: widget.session.profileId,
+                            repository: widget.chores,
+                            family: widget.family,
                           ),
                           const SizedBox(height: 12),
                           const Text(

@@ -1,5 +1,13 @@
 # Chorely changes
 
+## M07 — 2026-10-29
+
+Added server-owned one-off chore creation, assignment, edit and cancellation with
+separate templates/occurrences, household timing, text steps and optional original
+bundled art. Version conflicts and duplicate retries are explicit. Verified 35
+backend tests, 19 Flutter tests, two native processes (guardian/child/read/edit/
+restart/cancel), preserved audit history and Android debug build.
+
 ## M06 — 2026-10-29
 
 Added recipient-bound invites, guardian/member controls, child profiles and scoped

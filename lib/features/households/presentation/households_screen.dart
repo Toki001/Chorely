@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../chores/domain/chore_repository.dart';
+import '../../chores/presentation/chore_panel.dart';
 import '../../../app/theme.dart';
 import '../../../shared/widgets/page_frame.dart';
 import '../../auth/domain/auth_repository.dart';
@@ -12,12 +14,14 @@ import '../../family/presentation/join_screen.dart';
 class HouseholdsScreen extends StatefulWidget {
   const HouseholdsScreen({
     required this.family,
+    required this.chores,
     required this.session,
     required this.auth,
     required this.repository,
     super.key,
   });
   final FamilyRepository family;
+  final ChoreRepository chores;
   final AccountSession session;
   final AuthRepository auth;
   final HouseholdRepository repository;
@@ -60,6 +64,7 @@ class _HouseholdsScreenState extends State<HouseholdsScreen> {
         id: _selected!,
         uid: widget.session.uid,
         family: widget.family,
+        chores: widget.chores,
         repository: widget.repository,
         onBack: () => setState(() => _selected = null),
       );
@@ -332,6 +337,7 @@ class _HouseholdScreen extends StatefulWidget {
   const _HouseholdScreen({
     required this.uid,
     required this.family,
+    required this.chores,
     required this.id,
     required this.repository,
     required this.onBack,
@@ -340,6 +346,7 @@ class _HouseholdScreen extends StatefulWidget {
   final String id;
   final String uid;
   final FamilyRepository family;
+  final ChoreRepository chores;
   final HouseholdRepository repository;
   final VoidCallback onBack;
   @override
@@ -414,6 +421,13 @@ class _HouseholdScreenState extends State<_HouseholdScreen> {
                     Text(home.timezone),
                   ],
                 ),
+              ),
+              const SizedBox(height: 28),
+              ChorePanel(
+                home: home,
+                uid: widget.uid,
+                repository: widget.chores,
+                family: widget.family,
               ),
               const SizedBox(height: 28),
               Text(

@@ -1,3 +1,5 @@
+import 'test_chores.dart';
+
 import 'dart:async';
 
 import 'package:chorely/app/chorely_app.dart';
@@ -222,7 +224,12 @@ void main() {
           timezone: 'Asia/Manila',
         );
       await tester.pumpWidget(
-        ChorelyApp(auth: auth, households: homes, family: family),
+        ChorelyApp(
+          chores: TestChores(),
+          auth: auth,
+          households: homes,
+          family: family,
+        ),
       );
       auth.sessions.add(
         const AccountSession(

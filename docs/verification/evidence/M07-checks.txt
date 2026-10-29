@@ -1,0 +1,55 @@
+M07 final check gate — 2026-10-29
+Command: bash scripts/verify.sh (exit 0)
+Flutter 3.47.5 / Dart 3.13.4 / Node 22.23.4, demo-chorely emulators
+
+No issues found! (ran in 4.2s)
+00:01 +19: All tests passed!
+ok 1 - Callable ignores forged auth claims and denies unauthenticated/unverified/child callers
+ok 2 - Real callable creates once and fresh signed-in client reads persisted household
+ok 3 - Two real adult tenants cannot read or write each other's household
+ok 4 - Real recipient-bound invite cannot promote adult; revoked token loses tenant access
+ok 5 - Real supervised custom identity sees assigned profile work and stale token is denied after device revoke
+ok 6 - Linking email/password to supervised identity never permits adult conversion
+ok 7 - Guardian creates Cook rice once; a paired assignee and fresh adult client see stored details with tenant isolation
+ok 8 - Concurrent retries persist one definition, one concrete assignment and one audit event
+ok 9 - Two concurrent edits produce one accepted revision and a visible version conflict
+ok 10 - Tenant outsiders, children, revoked members and ordinary adults cannot assign
+ok 11 - Invalid dates, unavailable assignees, duplicate team members and self-review are rejected
+ok 12 - Date-only and cross-midnight windows preserve household dates; completed history cannot be edited
+ok 13 - Household wall-clock resolver selects first valid gap minute and earlier overlap instant
+ok 14 - Daily quota blocks new chores while accepted retries remain safe
+ok 15 - Adult creation persists household, role, index and one audit event
+ok 16 - Concurrent retry creates exactly one tenant and changed payload replay fails
+ok 17 - Anonymous, unverified, custom child identities and forged body role denied
+ok 18 - Invalid timezone, oversized text and malformed command ID denied before writes
+ok 19 - Revoked membership cannot retrieve accepted creation receipt
+ok 20 - Household creation quota cannot be bypassed with new command IDs
+ok 21 - Adult invite is recipient-bound, hashes codes, grants only intended role and retries safely
+ok 22 - Expired and revoked invites fail; non-guardian cannot issue or revoke
+ok 23 - Guardian removal preserves last guardian and atomically removes discovery index
+ok 24 - Adult member cannot add children, grant guardianship, pair devices or revoke membership
+ok 25 - Child profile stores no email or DOB and idempotent creation yields one profile
+ok 26 - Approved child pairing binds distinct device identity; replay from another device denied
+ok 27 - Expired/revoked pairing and revoked approving guardian cannot authorize new device
+ok 28 - Code entropy format and text/path validation reject malformed requests before writes
+ok 29 - Disabled approving account invalidates outstanding invite and pairing; daily limits enforced
+ok 30 - AUTH-01 anonymous and unrelated household reads denied
+ok 31 - AUTH-01 active guardian reads own household and occurrences
+ok 32 - AUTH-02 child cannot elevate, mutate occurrence or read secrets
+ok 33 - Child queries must restrict assigned scope; appropriate roster readable
+ok 34 - SYNC-03 revoked membership immediately denies server reads
+ok 35 - All client mutations denied even for guardian
+# tests 35
+# suites 0
+# pass 35
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+found 0 vulnerabilities
+PASS: 9 original art hashes/alpha/prompts; 4 explicit bundled assets; references excluded
+PASS: tracked source credential and machine-config guardrails
+PASS: 20 P0 requirements retain flow/screen/milestone/test mappings
+
+Android: flutter build apk --debug (exit 0), assembleDebug 5.2s.
+Known pre-existing Firebase plugin Kotlin Gradle migration warning remains.

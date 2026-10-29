@@ -10,6 +10,7 @@ import type { Actor } from "./contracts.js";
 import { createHousehold as createHouseholdCommand } from "./households.js";
 import * as membership from "./membership.js";
 import * as child from "./child_access.js";
+import { writeOneOffChore as writeOneOffCommand } from "./chores.js";
 initializeApp();
 function trustedActor(request: CallableRequest<unknown>): Actor | null {
   const auth = request.auth;
@@ -40,6 +41,7 @@ export const connectionStatus = onCall({ maxInstances: 2 }, (request) => {
   return { protocolVersion: 1, ready: true };
 });
 export const createHousehold = command(createHouseholdCommand);
+export const writeOneOffChore = command(writeOneOffCommand);
 export const issueInvite = command(membership.issueInvite);
 export const acceptInvite = command(membership.acceptInvite);
 export const revokeInvite = command(membership.revokeInvite);

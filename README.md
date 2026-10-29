@@ -2,7 +2,9 @@
 
 **Product:** Chorely | **Tagline:** One home. One team. Everyone plays their part.
 **Target:** Families and shared households, with parent/guardian administration and child-friendly supervised experiences.
-**Platform:** Flutter/Dart for Android and iOS. **Status:** Planning/development kit; **not** an implemented app or verified release.
+**Platform:** Flutter/Dart for Android and iOS. **Status:** Native Flutter app in development, using a real local Firebase emulator backend. Verified milestones and remaining gates are recorded in [`PROGRESS.md`](docs/roadmap/PROGRESS.md). This is not a verified release.
+
+Run the app with [`LOCAL_DEVELOPMENT.md`](docs/development/LOCAL_DEVELOPMENT.md). The supplied product/design kit remains the canonical requirements source.
 
 ## Start here
 

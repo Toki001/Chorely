@@ -10,6 +10,7 @@ import '../features/family/domain/family_repository.dart';
 import '../features/family/presentation/child_home_screen.dart';
 import '../features/family/presentation/join_screen.dart';
 import '../shared/widgets/page_frame.dart';
+import '../features/chores/domain/chore_repository.dart';
 import 'theme.dart';
 
 class ChorelyApp extends StatefulWidget {
@@ -17,11 +18,13 @@ class ChorelyApp extends StatefulWidget {
     required this.auth,
     required this.households,
     required this.family,
+    required this.chores,
     super.key,
   });
   final AuthRepository auth;
   final HouseholdRepository households;
   final FamilyRepository family;
+  final ChoreRepository chores;
   @override
   State<ChorelyApp> createState() => _ChorelyAppState();
 }
@@ -80,6 +83,7 @@ class _ChorelyAppState extends State<ChorelyApp> {
           auth: widget.auth,
           households: widget.households,
           family: widget.family,
+          chores: widget.chores,
         );
       }
       if (session.verified) {
@@ -89,6 +93,7 @@ class _ChorelyAppState extends State<ChorelyApp> {
           auth: widget.auth,
           repository: widget.households,
           family: widget.family,
+          chores: widget.chores,
         );
       }
       return AccountScreen(session: session, repository: widget.auth);

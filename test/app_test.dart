@@ -1,3 +1,5 @@
+import 'test_chores.dart';
+
 import 'dart:async';
 
 import 'test_households.dart';
@@ -130,6 +132,7 @@ void main() {
       addTearDown(auth.sessions.close);
       await tester.pumpWidget(
         ChorelyApp(
+          chores: TestChores(),
           auth: auth,
           households: TestHouseholds(),
           family: TestFamily(),

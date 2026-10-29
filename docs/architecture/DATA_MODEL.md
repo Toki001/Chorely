@@ -76,3 +76,10 @@ for actual token/retry/revocation behavior and the difference from a hardware ke
 
 ## Data lifecycle
 Define export schema, user/household deletion, retention, device logout cache erase, audit minimization and purging. Test guardianship changes, ownership transfer, last-admin prevention. Never store secrets or raw invite tokens in client-readable documents.
+
+M07 one-off implementation: `choreTemplates` and `occurrences` are distinct stored
+records. The occurrence snapshots content, assigned actor IDs, team/review policy,
+requested schedule, effective household local times, IANA zone and UTC instants.
+A stable once-slot ID plus a payload-bound receipt prevents duplicate instances.
+Every edit checks both versions; cancellation preserves the occurrence and audit.
+See ADR-004 for actual bounds, DST policy and the optional bundled illustration allowlist.

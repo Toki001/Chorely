@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'features/chores/data/firebase_chore_repository.dart';
 import 'app/chorely_app.dart';
 import 'app/theme.dart';
 import 'features/auth/data/firebase_auth_repository.dart';
@@ -49,6 +50,10 @@ Future<void> main() async {
 void mountApplication() => runApp(
   ChorelyApp(
     auth: FirebaseAuthRepository(FirebaseAuth.instance),
+    chores: FirebaseChoreRepository(
+      FirebaseFirestore.instance,
+      FirebaseFunctions.instance,
+    ),
     family: FirebaseFamilyRepository(
       FirebaseFirestore.instance,
       FirebaseFunctions.instance,
