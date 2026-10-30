@@ -1,3 +1,5 @@
+import '../../sync/presentation/chore_command_scope.dart';
+import '../../sync/domain/read_cache.dart';
 import '../../notifications/presentation/device_reminder_scope.dart';
 import '../../notifications/domain/device_reminders.dart';
 import '../../notifications/domain/notifications_repository.dart';
@@ -44,10 +46,12 @@ class HouseholdHub extends StatefulWidget {
 class _HouseholdHubState extends State<HouseholdHub>
     with WidgetsBindingObserver {
   DeviceReminderController? _reminders;
+  HouseholdReadCache? _readCache;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _reminders = DeviceReminderScope.maybeOf(context);
+    _readCache = ChoreCommandScope.cacheOf(context);
     if (_person != null) {
       _reminders?.bind(widget.uid, widget.home.id, _person!.id);
     }
@@ -83,7 +87,8 @@ class _HouseholdHubState extends State<HouseholdHub>
     _loadClock();
     _timer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (_clock == null || !mounted) return;
-      if (!_now.isBefore(_clock!.nextMidnight)) {
+      if (_readCache?.stale(widget.home.id) == true ||
+          !_now.isBefore(_clock!.nextMidnight)) {
         _loadClock();
       } else {
         setState(() {});

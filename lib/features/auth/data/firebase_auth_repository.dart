@@ -1,3 +1,5 @@
+import '../domain/account_session_store.dart';
+
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,8 +7,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../domain/auth_repository.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
-  FirebaseAuthRepository(this._auth);
+  FirebaseAuthRepository(this._auth, {this.sessionStore});
   final FirebaseAuth _auth;
+  final AccountSessionStore? sessionStore;
 
   @override
   Stream<AccountSession?> watchSession() {
@@ -23,23 +26,52 @@ class FirebaseAuthRepository implements AuthRepository {
             controller.add(null);
             return;
           }
-          if (lastUid != user.uid) controller.add(null);
+          if (lastUid != user.uid) {
+            controller.add(
+              AccountSession(
+                uid: user.uid,
+                email: user.email ?? '',
+                verified: false,
+                restoring: true,
+              ),
+            );
+          }
           lastUid = user.uid;
           try {
             final claims =
                 (await user.getIdTokenResult()).claims ?? <String, dynamic>{};
             if (current != generation || controller.isClosed) return;
-            controller.add(
-              AccountSession(
-                uid: user.uid,
-                email: user.email ?? '',
-                verified: user.emailVerified,
-                supervised: claims['scopedChild'] == true,
-                householdId: claims['householdId'] as String?,
-                profileId: claims['actorId'] as String?,
-              ),
+            final session = AccountSession(
+              uid: user.uid,
+              email: user.email ?? '',
+              verified: user.emailVerified,
+              supervised: claims['scopedChild'] == true,
+              householdId: claims['householdId'] as String?,
+              profileId: claims['actorId'] as String?,
             );
+            if (session.verified || session.supervised) {
+              try {
+                await sessionStore?.save(session);
+              } catch (_) {}
+            }
+            if (current == generation && !controller.isClosed) {
+              controller.add(session);
+            }
           } catch (error, stack) {
+            // A currently signed-in SDK UID may read its last confirmed scope
+            // during network failure. Revoked/disabled credentials never fall back.
+            if (error is FirebaseAuthException &&
+                error.code == 'network-request-failed') {
+              try {
+                final cached = await sessionStore?.read(user.uid);
+                if (cached != null &&
+                    current == generation &&
+                    !controller.isClosed) {
+                  controller.add(cached);
+                  return;
+                }
+              } catch (_) {}
+            }
             if (current == generation && !controller.isClosed) {
               controller.addError(error, stack);
             }

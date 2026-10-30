@@ -142,3 +142,17 @@ Auth/server access. Provider dispatch/FID rotation, physical OS permission and
 terminated/reboot delivery remain unverified external/device gates; M11 is
 PARTIAL, never evidence of production push acceptance/delivery. Details and
 screenshots are in `docs/verification/M11.md`.
+
+M12 implementation: F09/S31/S32 and SYNC-01–03 map to
+`features/sync/{domain,data,presentation}`, `test/chore_command_outbox_test.dart`,
+`test/read_cache_test.dart`, pending action cases in `test/chore_actions_test.dart`
+and large-text/sign-out cases in `test/sync_status_test.dart`. The native
+`offline_{queue,recovery,cached_read,revocation}_test.dart` runner uses separate
+processes, real SQLite, Auth/Functions/Firestore and genuine loopback connection
+failure. It checks unchanged server state before acceptance, one contribution
+after repeated restarts, frozen-base conflict review, fully disconnected data
+reads and actual membership-removal purge. `cache_storage_test.dart` checks native
+purge/write races. Supervised cache tests fence the household/profile as well as
+the SDK UID. Exact passing counts and remaining hardware/expired-token coverage
+are recorded in `docs/verification/M12.md`; no provider delivery or production
+readiness follows from these local recovery checks.

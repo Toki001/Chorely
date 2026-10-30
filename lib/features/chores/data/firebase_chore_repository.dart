@@ -1,3 +1,6 @@
+import '../../sync/domain/read_cache.dart';
+import '../../sync/data/cached_models.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
@@ -6,7 +9,8 @@ import '../domain/recurrence_repository.dart';
 import 'firebase_recurrence_repository.dart';
 
 class FirebaseChoreRepository implements ChoreRepository {
-  FirebaseChoreRepository(this._db, this._functions);
+  FirebaseChoreRepository(this._db, this._functions, {this.readCache});
+  final HouseholdReadCache? readCache;
   final FirebaseFirestore _db;
   final FirebaseFunctions _functions;
   @override
@@ -16,12 +20,7 @@ class FirebaseChoreRepository implements ChoreRepository {
   );
   @override
   Stream<bool> watchCanManage(String householdId, String uid) =>
-      _db.doc('households/$householdId/members/$uid').snapshots().map((s) {
-        final d = s.data();
-        return d?['status'] == 'active' &&
-            (d?['role'] == 'guardian' ||
-                (d?['role'] == 'adult' && d?['canAssign'] == true));
-      });
+      watchActor(householdId, uid).map((a) => a?.canManage == true);
   ChoreOccurrence _read(DocumentSnapshot<Map<String, dynamic>> s) {
     final d = s.data()!;
     return ChoreOccurrence(
@@ -76,8 +75,7 @@ class FirebaseChoreRepository implements ChoreRepository {
     );
   }
 
-  @override
-  Stream<List<ChoreOccurrence>> watchChores(
+  Stream<List<ChoreOccurrence>> _serverwatchChores(
     String householdId, {
     String? actorId,
   }) {
@@ -87,20 +85,38 @@ class FirebaseChoreRepository implements ChoreRepository {
     if (actorId != null) {
       query = query.where('assignedActorIds', arrayContains: actorId);
     }
-    return query.snapshots().map((s) {
-      final chores = s.docs.map(_read).toList();
-      chores.sort((a, b) => a.timingLabel.compareTo(b.timingLabel));
-      return chores;
-    });
+    return query
+        .snapshots(includeMetadataChanges: true)
+        .where((s) {
+          if (s.metadata.isFromCache) {
+            readCache?.unconfirmed(
+              householdId,
+              key: 'chores/${actorId == null ? 'all' : 'member:$actorId'}',
+            );
+            return false;
+          }
+          return true;
+        })
+        .map((s) {
+          final chores = s.docs.map(_read).toList();
+          chores.sort((a, b) => a.timingLabel.compareTo(b.timingLabel));
+          return chores;
+        });
   }
 
-  @override
-  Stream<ChoreOccurrence?> watchChore(
+  Stream<ChoreOccurrence?> _serverwatchChore(
     String householdId,
     String occurrenceId,
   ) => _db
       .doc('households/$householdId/occurrences/$occurrenceId')
-      .snapshots()
+      .snapshots(includeMetadataChanges: true)
+      .where((s) {
+        if (s.metadata.isFromCache) {
+          readCache?.unconfirmed(householdId, key: 'chore/$occurrenceId');
+          return false;
+        }
+        return true;
+      })
       .map((s) => s.exists ? _read(s) : null);
   @override
   Future<void> write({
@@ -146,9 +162,17 @@ class FirebaseChoreRepository implements ChoreRepository {
     }
   }
 
-  @override
-  Stream<ChoreActor?> watchActor(String householdId, String uid) =>
-      _db.doc('households/$householdId/members/$uid').snapshots().map((s) {
+  Stream<ChoreActor?> _serverwatchActor(String householdId, String uid) => _db
+      .doc('households/$householdId/members/$uid')
+      .snapshots(includeMetadataChanges: true)
+      .where((s) {
+        if (s.metadata.isFromCache) {
+          readCache?.unconfirmed(householdId, key: 'actor/$uid');
+          return false;
+        }
+        return true;
+      })
+      .map((s) {
         final d = s.data();
         if (d?['status'] != 'active') return null;
         final role = d?['role'] as String?;
@@ -167,7 +191,13 @@ class FirebaseChoreRepository implements ChoreRepository {
   @override
   Stream<HelpRequest?> watchHelp(String householdId, String requestId) => _db
       .doc('households/$householdId/helpRequests/$requestId')
-      .snapshots()
+      .snapshots(includeMetadataChanges: true)
+      .where((s) {
+        if (s.metadata.isFromCache) {
+          return false;
+        }
+        return true;
+      })
       .map((s) {
         final d = s.data();
         return d == null
@@ -189,7 +219,13 @@ class FirebaseChoreRepository implements ChoreRepository {
       .where('entityId', isEqualTo: occurrenceId)
       .orderBy('toVersion', descending: true)
       .limit(30)
-      .snapshots()
+      .snapshots(includeMetadataChanges: true)
+      .where((s) {
+        if (s.metadata.isFromCache) {
+          return false;
+        }
+        return true;
+      })
       .map(
         (s) => s.docs.map((d) {
           final v = d.data();
@@ -228,15 +264,20 @@ class FirebaseChoreRepository implements ChoreRepository {
     String? targetActorId,
   }) async {
     try {
-      await _functions.httpsCallable('actOnOccurrence').call<Object?>({
-        'householdId': householdId,
-        'occurrenceId': occurrenceId,
-        'commandId': commandId,
-        'action': action,
-        'baseVersion': baseVersion,
-        'note': note,
-        'targetActorId': ?targetActorId,
-      });
+      await _functions
+          .httpsCallable(
+            'actOnOccurrence',
+            options: HttpsCallableOptions(timeout: const Duration(seconds: 10)),
+          )
+          .call<Object?>({
+            'householdId': householdId,
+            'occurrenceId': occurrenceId,
+            'commandId': commandId,
+            'action': action,
+            'baseVersion': baseVersion,
+            'note': note,
+            'targetActorId': ?targetActorId,
+          });
     } on FirebaseFunctionsException catch (e) {
       final details = e.details is Map
           ? Map<String, dynamic>.from(e.details as Map)
@@ -272,40 +313,48 @@ class FirebaseChoreRepository implements ChoreRepository {
     await refresh(householdId, occurrenceId);
   }
 
-  @override
-  Future<HouseholdClock> loadClock(String householdId) async {
-    try {
-      final data =
-          (await _functions
-                  .httpsCallable('getHouseholdClock')
-                  .call<Map<String, dynamic>>({'householdId': householdId}))
-              .data;
-      return HouseholdClock(
-        today: data['today'] as String,
-        timezone: data['timezoneIana'] as String,
-        serverNow: DateTime.fromMillisecondsSinceEpoch(
-          (data['serverNowMillis'] as num).toInt(),
-          isUtc: true,
-        ),
-        nextMidnight: DateTime.fromMillisecondsSinceEpoch(
-          (data['nextMidnightMillis'] as num).toInt(),
-          isUtc: true,
-        ),
-        actor: ChoreActor(
-          id: data['actorId'] as String,
-          role: data['role'] as String,
-          canManage: data['canManage'] == true,
-        ),
-      );
-    } on FirebaseFunctionsException {
-      throw const ChoreFailure(
-        'Couldn’t load your household day. Check your connection and access.',
-      );
-    }
+  Future<HouseholdClock> _serverClock(String hid) async {
+    final data =
+        (await _functions
+                .httpsCallable(
+                  'getHouseholdClock',
+                  options: HttpsCallableOptions(
+                    timeout: const Duration(seconds: 5),
+                  ),
+                )
+                .call<Map<String, dynamic>>({'householdId': hid}))
+            .data;
+    return HouseholdClock(
+      today: data['today'] as String,
+      timezone: data['timezoneIana'] as String,
+      serverNow: DateTime.fromMillisecondsSinceEpoch(
+        (data['serverNowMillis'] as num).toInt(),
+        isUtc: true,
+      ),
+      nextMidnight: DateTime.fromMillisecondsSinceEpoch(
+        (data['nextMidnightMillis'] as num).toInt(),
+        isUtc: true,
+      ),
+      actor: ChoreActor(
+        id: data['actorId'] as String,
+        role: data['role'] as String,
+        canManage: data['canManage'] == true,
+      ),
+    );
   }
 
   @override
-  Stream<List<ChoreOccurrence>> watchRange(
+  Future<HouseholdClock> loadClock(String householdId) =>
+      readCache?.load(
+        householdId: householdId,
+        key: 'clock',
+        server: () => _serverClock(householdId),
+        encode: saveClock,
+        decode: readClock,
+      ) ??
+      _serverClock(householdId);
+
+  Stream<List<ChoreOccurrence>> _serverwatchRange(
     String householdId,
     String fromDate,
     String throughDate, {
@@ -319,11 +368,21 @@ class FirebaseChoreRepository implements ChoreRepository {
       query = query.where('assignedActorIds', arrayContains: actorId);
     }
     // An empty local cache is not evidence that a household has zero chores.
-    // M12 adds explicit cached/offline read state; this online hub waits for the
-    // server before reporting its first summary.
+    // The identity-scoped disk cache separately labels saved data. Memory-only
+    // snapshots cannot establish fresh counts or access.
     return query
         .snapshots(includeMetadataChanges: true)
-        .where((s) => !s.metadata.isFromCache)
+        .where((s) {
+          if (s.metadata.isFromCache) {
+            readCache?.unconfirmed(
+              householdId,
+              key:
+                  'range/$fromDate/$throughDate/${actorId == null ? 'all' : 'member:$actorId'}',
+            );
+            return false;
+          }
+          return true;
+        })
         .map((s) {
           final rows = s.docs.map(_read).toList();
           rows.sort((a, b) {
@@ -333,5 +392,64 @@ class FirebaseChoreRepository implements ChoreRepository {
           });
           return rows;
         });
+  }
+
+  @override
+  Stream<ChoreActor?> watchActor(String hid, String uid) {
+    final server = _serverwatchActor(hid, uid);
+    return readCache?.watch<ChoreActor?>(
+          householdId: hid,
+          key: 'actor/$uid',
+          server: server,
+          encode: (a) => a == null ? null : saveActor(a),
+          decode: (v) => v == null ? null : readActor(v),
+          authorized: (a) => a != null,
+        ) ??
+        server;
+  }
+
+  @override
+  Stream<ChoreOccurrence?> watchChore(String hid, String oid) {
+    final server = _serverwatchChore(hid, oid);
+    return readCache?.watch<ChoreOccurrence?>(
+          householdId: hid,
+          key: 'chore/$oid',
+          server: server,
+          encode: (c) => c == null ? null : saveChore(c),
+          decode: (v) => v == null ? null : readChore(v),
+        ) ??
+        server;
+  }
+
+  @override
+  Stream<List<ChoreOccurrence>> watchChores(String hid, {String? actorId}) {
+    final server = _serverwatchChores(hid, actorId: actorId);
+    return readCache?.watch(
+          householdId: hid,
+          key: 'chores/${actorId == null ? 'all' : 'member:$actorId'}',
+          server: server,
+          encode: (rows) => rows.map(saveChore).toList(),
+          decode: (v) => objectList(v, readChore),
+        ) ??
+        server;
+  }
+
+  @override
+  Stream<List<ChoreOccurrence>> watchRange(
+    String hid,
+    String from,
+    String through, {
+    String? actorId,
+  }) {
+    final server = _serverwatchRange(hid, from, through, actorId: actorId);
+    return readCache?.watch(
+          householdId: hid,
+          key:
+              'range/$from/$through/${actorId == null ? 'all' : 'member:$actorId'}',
+          server: server,
+          encode: (rows) => rows.map(saveChore).toList(),
+          decode: (v) => objectList(v, readChore),
+        ) ??
+        server;
   }
 }

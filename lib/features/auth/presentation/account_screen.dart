@@ -1,3 +1,5 @@
+import '../../sync/presentation/confirm_account_exit.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../shared/widgets/page_frame.dart';
@@ -80,7 +82,13 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
           ],
           TextButton(
-            onPressed: _busy ? null : () => _run(widget.repository.signOut, ''),
+            onPressed: _busy
+                ? null
+                : () => _run(
+                    () =>
+                        confirmAccountExit(context, widget.repository.signOut),
+                    '',
+                  ),
             child: const Text('Sign out'),
           ),
         ],

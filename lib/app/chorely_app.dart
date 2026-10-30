@@ -1,3 +1,6 @@
+import '../features/sync/presentation/confirm_account_exit.dart';
+import '../features/sync/presentation/sync_status_frame.dart';
+import '../features/sync/presentation/chore_command_scope.dart';
 import '../features/notifications/presentation/device_reminder_scope.dart';
 
 import 'dart:async';
@@ -181,7 +184,8 @@ class _ChorelyAppState extends State<ChorelyApp> {
                 child: const Text('Try again'),
               ),
               TextButton(
-                onPressed: widget.auth.signOut,
+                onPressed: () =>
+                    confirmAccountExit(context, widget.auth.signOut),
                 child: const Text('Sign out'),
               ),
             ],
@@ -189,7 +193,8 @@ class _ChorelyAppState extends State<ChorelyApp> {
         ),
       );
     }
-    if (snapshot.connectionState == ConnectionState.waiting) {
+    if (snapshot.connectionState == ConnectionState.waiting ||
+        snapshot.data?.restoring == true) {
       return const Scaffold(
         body: Center(
           child: CircularProgressIndicator(semanticsLabel: 'Loading account'),
@@ -206,7 +211,8 @@ class _ChorelyAppState extends State<ChorelyApp> {
                 children: [
                   const InlineError('This supervised session is unavailable.'),
                   TextButton(
-                    onPressed: widget.auth.signOut,
+                    onPressed: () =>
+                        confirmAccountExit(context, widget.auth.signOut),
                     child: const Text('Sign out'),
                   ),
                 ],
@@ -269,9 +275,35 @@ class _ChorelyAppState extends State<ChorelyApp> {
       _linkSession = snapshot.hasError ? null : snapshot.data;
       _authLoading =
           snapshot.hasError ||
-          snapshot.connectionState == ConnectionState.waiting;
+          snapshot.connectionState == ConnectionState.waiting ||
+          _linkSession?.restoring == true;
       final uid = _linkSession?.uid;
       DeviceReminderScope.maybeOf(context)?.identity(uid);
+      final session = _linkSession;
+      final outbox = ChoreCommandScope.maybeOf(context);
+      final cache = ChoreCommandScope.cacheOf(context);
+      if (_authLoading) {
+        cache?.suspend();
+      } else {
+        cache?.identity(
+          session != null && (session.verified || session.supervised)
+              ? uid
+              : null,
+          householdId: session?.supervised == true
+              ? session?.householdId
+              : null,
+          actorId: session?.supervised == true ? session?.profileId : null,
+        );
+      }
+      if (_authLoading) {
+        outbox?.suspend();
+      } else {
+        outbox?.identity(
+          session != null && (session.verified || session.supervised)
+              ? uid
+              : null,
+        );
+      }
       if (_linkUid != uid) {
         if (_linkUid != null) _pendingLink = null;
         _linkUid = uid;
@@ -288,6 +320,10 @@ class _ChorelyAppState extends State<ChorelyApp> {
         key: ValueKey(uid ?? 'signed-out'),
         navigatorKey: _navigator,
         title: 'Chorely',
+        builder: outbox != null && cache != null
+            ? (context, child) =>
+                  SyncStatusFrame(outbox: outbox, cache: cache, child: child!)
+            : null,
         debugShowCheckedModeBanner: false,
         theme: chorelyTheme(),
         home: _home(snapshot),

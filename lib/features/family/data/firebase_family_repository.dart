@@ -1,3 +1,6 @@
+import '../../sync/domain/read_cache.dart';
+import '../../sync/data/cached_models.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,14 +8,26 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../domain/family_repository.dart';
 
 class FirebaseFamilyRepository implements FamilyRepository {
-  FirebaseFamilyRepository(this._db, this._functions, this._auth);
+  FirebaseFamilyRepository(
+    this._db,
+    this._functions,
+    this._auth, {
+    this.readCache,
+  });
+  final HouseholdReadCache? readCache;
   final FirebaseFirestore _db;
   final FirebaseFunctions _functions;
   final FirebaseAuth _auth;
-  @override
-  Stream<List<FamilyPerson>> watchPeople(String householdId) => _db
+  Stream<List<FamilyPerson>> _serverPeople(String householdId) => _db
       .collection('households/$householdId/profiles')
-      .snapshots()
+      .snapshots(includeMetadataChanges: true)
+      .where((s) {
+        if (s.metadata.isFromCache) {
+          readCache?.unconfirmed(householdId, key: 'people');
+          return false;
+        }
+        return true;
+      })
       .map(
         (s) => s.docs
             .map(
@@ -20,15 +35,23 @@ class FirebaseFamilyRepository implements FamilyRepository {
                 id: d.id,
                 nickname: d.get('nickname') as String,
                 role: d.get('role') as String,
-                active: d.data()['status'] != 'revoked',
+                active:
+                    d.data()['status'] == null ||
+                    d.data()['status'] == 'active',
               ),
             )
             .toList(),
       );
-  @override
-  Stream<String?> watchRole(String householdId, String uid) => _db
+  Stream<String?> _serverRole(String householdId, String uid) => _db
       .doc('households/$householdId/members/$uid')
-      .snapshots()
+      .snapshots(includeMetadataChanges: true)
+      .where((s) {
+        if (s.metadata.isFromCache) {
+          readCache?.unconfirmed(householdId, key: 'role/$uid');
+          return false;
+        }
+        return true;
+      })
       .map(
         (s) => s.data()?['status'] == 'active'
             ? (s.data()?['role'] as String?)
@@ -44,7 +67,13 @@ class FirebaseFamilyRepository implements FamilyRepository {
     };
     return _db
         .collection('households/$householdId/$path')
-        .snapshots()
+        .snapshots(includeMetadataChanges: true)
+        .where((s) {
+          if (s.metadata.isFromCache) {
+            return false;
+          }
+          return true;
+        })
         .map(
           (s) => s.docs.map((d) {
             final v = d.data();
@@ -201,5 +230,35 @@ class FirebaseFamilyRepository implements FamilyRepository {
           .collection('households/$householdId/$path')
           .get(const GetOptions(source: Source.server));
     }
+  }
+
+  @override
+  Stream<List<FamilyPerson>> watchPeople(String hid) {
+    final server = _serverPeople(hid);
+    return readCache?.watch(
+          householdId: hid,
+          key: 'people',
+          server: server,
+          encode: (rows) => rows.map(savePerson).toList(),
+          decode: (v) => objectList(v, readPerson),
+          authorized: (rows) =>
+              readCache?.supervisedHouseholdId != hid ||
+              rows.any((p) => p.id == readCache?.supervisedActorId && p.active),
+        ) ??
+        server;
+  }
+
+  @override
+  Stream<String?> watchRole(String hid, String uid) {
+    final server = _serverRole(hid, uid);
+    return readCache?.watch<String?>(
+          householdId: hid,
+          key: 'role/$uid',
+          server: server,
+          encode: (v) => v,
+          decode: (v) => v as String?,
+          authorized: (v) => v != null,
+        ) ??
+        server;
   }
 }

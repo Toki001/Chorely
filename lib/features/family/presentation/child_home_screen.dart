@@ -1,3 +1,4 @@
+import '../../sync/presentation/confirm_account_exit.dart';
 import '../../notifications/domain/notifications_repository.dart';
 
 import 'package:flutter/material.dart';
@@ -51,7 +52,7 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
             ),
           const SizedBox(height: 24),
           OutlinedButton(
-            onPressed: widget.auth.signOut,
+            onPressed: () => confirmAccountExit(context, widget.auth.signOut),
             child: const Text('Leave supervised mode'),
           ),
           const Text('A guardian must sign in again to open adult controls.'),
@@ -89,7 +90,7 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
             family: widget.family,
             notifications: widget.notifications,
             supervisedActorId: widget.session.profileId!,
-            onExit: widget.auth.signOut,
+            onExit: () => confirmAccountExit(context, widget.auth.signOut),
           );
         },
       );

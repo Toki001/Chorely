@@ -1,3 +1,6 @@
+import '../../sync/domain/chore_command_outbox.dart';
+import '../../sync/presentation/chore_command_scope.dart';
+
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -62,16 +65,34 @@ class _ChoreActionsState extends State<ChoreActions> {
       _error = null;
     });
     try {
-      await widget.repository.act(
-        householdId: widget.householdId,
-        occurrenceId: widget.chore.id,
-        commandId: intent.id,
-        action: intent.action,
-        baseVersion: intent.version,
-        note: intent.note,
-        targetActorId: intent.target,
-      );
+      final outbox = ChoreCommandScope.maybeOf(context);
+      if (outbox != null) {
+        await outbox.enqueue(
+          ChoreCommand(
+            id: intent.id,
+            uid: widget.uid,
+            householdId: widget.householdId,
+            occurrenceId: widget.chore.id,
+            action: intent.action,
+            baseVersion: intent.version,
+            note: intent.note,
+            targetActorId: intent.target,
+          ),
+        );
+      } else {
+        await widget.repository.act(
+          householdId: widget.householdId,
+          occurrenceId: widget.chore.id,
+          commandId: intent.id,
+          action: intent.action,
+          baseVersion: intent.version,
+          note: intent.note,
+          targetActorId: intent.target,
+        );
+      }
       if (mounted) setState(() => _pending = null);
+    } on OutboxFailure catch (e) {
+      if (mounted) setState(() => _error = e.message);
     } on ChoreFailure catch (e) {
       if (mounted) {
         setState(() {
@@ -97,7 +118,14 @@ class _ChoreActionsState extends State<ChoreActions> {
     if (_busy) return;
     setState(() => _busy = true);
     try {
+      final outbox = ChoreCommandScope.maybeOf(context);
+      final saved = outbox?.forOccurrence(
+        widget.householdId,
+        widget.chore.id,
+        widget.chore.version,
+      );
       await widget.repository.refresh(widget.householdId, widget.chore.id);
+      if (saved?.blocked == true) await outbox!.resolve(saved!.command.id);
       if (mounted) {
         setState(() {
           _pending = null;
@@ -130,7 +158,17 @@ class _ChoreActionsState extends State<ChoreActions> {
   }
 
   @override
-  Widget build(BuildContext context) => StreamBuilder<ChoreActor?>(
+  Widget build(BuildContext context) {
+    final outbox = ChoreCommandScope.maybeOf(context);
+    return outbox == null
+        ? _body(null)
+        : ListenableBuilder(
+            listenable: outbox,
+            builder: (context, _) => _body(outbox),
+          );
+  }
+
+  Widget _body(ChoreCommandOutbox? outbox) => StreamBuilder<ChoreActor?>(
     key: const ValueKey('chore-action-actor'),
     stream: _actor,
     builder: (context, s) {
@@ -156,7 +194,17 @@ class _ChoreActionsState extends State<ChoreActions> {
           .where((c) => c.actorId == actor.id)
           .firstOrNull;
       final active = ['scheduled', 'needs_redo'].contains(chore.status);
-      final canPress = !_busy && _pending == null && !_blocked;
+      final saved = outbox?.forOccurrence(
+        widget.householdId,
+        widget.chore.id,
+        widget.chore.version,
+      );
+      final canPress =
+          !_busy &&
+          _pending == null &&
+          !_blocked &&
+          saved == null &&
+          outbox?.storageError == null;
       final ownHelp = chore.helpRequests
           .where((h) => h.actorId == actor.id)
           .firstOrNull;
@@ -239,6 +287,37 @@ class _ChoreActionsState extends State<ChoreActions> {
               onPressed: canPress ? () => _requestNote(true) : null,
               child: const Text('Ask for another look'),
             ),
+          ],
+          if (outbox?.storageError != null) ...[
+            InlineError(outbox!.storageError!),
+            TextButton(
+              onPressed: outbox.recover,
+              child: const Text('Retry device sync'),
+            ),
+          ],
+          if (saved != null) ...[
+            const SizedBox(height: 12),
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                saved.pending
+                    ? 'Saved on this device. Waiting for server confirmation.'
+                    : saved.blocked
+                    ? 'This saved request needs your review.'
+                    : 'Confirmed by the server. Loading the latest chore.',
+              ),
+            ),
+            if (saved.message != null) InlineError(saved.message!),
+            if (saved.pending)
+              TextButton(
+                onPressed: () => outbox!.retry(saved.command.id),
+                child: const Text('Retry saved request'),
+              ),
+            if (saved.blocked)
+              TextButton(
+                onPressed: _busy ? null : _reload,
+                child: const Text('Review current chore'),
+              ),
           ],
           if (_busy)
             const Padding(
@@ -394,6 +473,10 @@ class _HelpCardState extends State<_HelpCard> {
         );
       }
       if (!s.hasData) {
+        if (ChoreCommandScope.cacheOf(context)?.stale(widget.householdId) ==
+            true) {
+          return const Text('Help details will refresh when you’re connected.');
+        }
         return const LinearProgressIndicator(
           semanticsLabel: 'Loading help request',
         );
@@ -458,6 +541,12 @@ class _ActivityPanelState extends State<_ActivityPanel> {
           return const InlineError('Couldn’t load this chore’s activity.');
         }
         if (!s.hasData || !people.hasData) {
+          if (ChoreCommandScope.cacheOf(context)?.stale(widget.householdId) ==
+              true) {
+            return const Text(
+              'Chore activity will refresh when you’re connected.',
+            );
+          }
           return const LinearProgressIndicator(
             semanticsLabel: 'Loading chore activity',
           );

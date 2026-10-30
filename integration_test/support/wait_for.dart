@@ -5,7 +5,13 @@ import 'package:flutter/material.dart';
 Future<void> ensureReady(WidgetTester tester, Finder finder) async {
   await waitFor(tester, finder);
   await Scrollable.ensureVisible(tester.element(finder), alignment: .5);
-  await tester.pumpAndSettle();
+  // Indeterminate offline/loading indicators never settle. Advance the finite
+  // route/scroll transition without waiting for unrelated continuous animation.
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.runAsync(
+    () => Future<void>.delayed(const Duration(milliseconds: 100)),
+  );
+  await tester.pump(const Duration(milliseconds: 100));
 }
 
 /// Native network callbacks use wall time; pumping test time alone can race them.

@@ -1,3 +1,8 @@
+import 'package:chorely/features/sync/domain/chore_command_outbox.dart';
+import 'package:chorely/features/sync/presentation/chore_command_scope.dart';
+
+import 'chore_command_outbox_test.dart' show CommandMemoryStore;
+
 import 'package:chorely/app/theme.dart';
 import 'package:chorely/features/chores/domain/chore_repository.dart';
 import 'package:chorely/features/chores/presentation/chore_actions.dart';
@@ -71,6 +76,72 @@ Widget screen(
   ),
 );
 void main() {
+  testWidgets(
+    'A durable queued action stays pending and disabled across widget recreation until server confirmation',
+    (tester) async {
+      final store = CommandMemoryStore(() => DateTime.utc(2026, 10, 29));
+      final outbox = ChoreCommandOutbox(
+        store,
+        (_) async {},
+        automatic: false,
+        now: () => DateTime.utc(2026, 10, 29),
+      );
+      outbox.identity('account');
+      final repo = TestChores()
+        ..actor = const ChoreActor(
+          id: 'child',
+          role: 'child',
+          canManage: false,
+        );
+      Widget view(int version) => ChoreCommandScope(
+        outbox: outbox,
+        child: screen(repo, state(version: version)),
+      );
+      await tester.pumpWidget(view(3));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Mark done'));
+      await tester.tap(find.text('Mark done'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Saved on this device. Waiting for server confirmation.'),
+        findsOneWidget,
+      );
+      expect(find.text('Assigned'), findsOneWidget);
+      expect(find.text('Done'), findsNothing);
+      expect(repo.actions, isEmpty);
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Mark done'),
+            )
+            .onPressed,
+        isNull,
+      );
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(view(3));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Saved on this device. Waiting for server confirmation.'),
+        findsOneWidget,
+      );
+      await outbox.drain();
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Confirmed by the server. Loading the latest chore.'),
+        findsOneWidget,
+      );
+      await tester.pumpWidget(view(4));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Confirmed by the server. Loading the latest chore.'),
+        findsNothing,
+      );
+      await tester.pumpWidget(const SizedBox());
+      outbox.dispose();
+    },
+  );
+
   testWidgets(
     'Uncertain completion retries the same envelope even after a newer stored version arrives',
     (tester) async {

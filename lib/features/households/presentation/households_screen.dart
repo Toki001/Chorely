@@ -1,3 +1,4 @@
+import '../../sync/presentation/confirm_account_exit.dart';
 import '../../notifications/domain/notifications_repository.dart';
 
 import 'package:flutter/material.dart';
@@ -79,7 +80,7 @@ class _HouseholdsScreenState extends State<HouseholdsScreen> {
         actions: [
           IconButton(
             tooltip: 'Sign out',
-            onPressed: widget.auth.signOut,
+            onPressed: () => confirmAccountExit(context, widget.auth.signOut),
             icon: const Icon(Icons.logout_rounded),
           ),
         ],

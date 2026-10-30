@@ -1,0 +1,79 @@
+Sanitized local M12 evidence, 2026-10-30. Commands and limits: ../M12.md.
+
+Source: verify
+No issues found! (ran in 6.9s)
++85: All tests passed!
+# tests 115
+# pass 115
+# fail 0
+# skipped 0
+# duration_ms 82328.370084
+PASS: 9 original art hashes/alpha/prompts; 4 explicit bundled assets; references excluded
+PASS: tracked source credential and machine-config guardrails
+PASS: 20 P0 requirements retain flow/screen/milestone/test mappings
+found 0 vulnerabilities
+Source: native-storage
++1: All tests passed!
+Xcode build done.                                           39.3s
+Source: native
++1: All tests passed!
++1: All tests passed!
++1: All tests passed!
++1: All tests passed!
++1: All tests passed!
++1: All tests passed!
++1: All tests passed!
++1: All tests passed!
+PASS: Native durable commands, repeated restart without duplicate contributions, explicit conflict review, fully disconnected Firestore/Functions cached reads, one accepted recovery, and actual membership-removal cache/command purge passed.
+Xcode build done.                                           35.4s
+Xcode build done.                                           30.9s
+Xcode build done.                                           27.2s
+Xcode build done.                                           27.3s
+Xcode build done.                                           27.5s
+Xcode build done.                                           25.5s
+Xcode build done.                                           26.8s
+Xcode build done.                                           26.0s
+Chorely M12 durable pending request ready
+Chorely M12 server-confirmed recovery ready
+Chorely M12 server-confirmed recovery ready
+Chorely M12 durable pending request ready
+Chorely M12 explicit conflict review ready
+Chorely M12 cached offline detail ready
+Chorely M12 server-confirmed recovery ready
+Chorely M12 revoked cache purged ready
+
+Source: final-analyze
+No issues found! (ran in 4.0s)
+
+
+
+
+
+
+Source: final-flutter
+
++88: All tests passed!
+
+
+
+
+
+Source: completion
+
++1: All tests passed!
++1: All tests passed!
+PASS: completion_test stored approved revision 7, one current contribution, answered help, seven accepted events and one private denied self-review.
+PASS: completion_restart_test stored approved revision 7, one current contribution, answered help, seven accepted events and one private denied self-review.
+Xcode build done.                                           35.1s
+Xcode build done.                                           27.8s
+
+
+
+Source: android
+
+
+
+
+Built build/app/outputs/flutter-apk/app-debug.apk
+Running Gradle task 'assembleDebug'...
+Running Gradle task 'assembleDebug'...                             15.2s

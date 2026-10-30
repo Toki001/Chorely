@@ -5,6 +5,7 @@
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
     <application
         android:label="Chorely"
+        android:allowBackup="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- Opt in only after explicit device consent and authorized live setup. -->

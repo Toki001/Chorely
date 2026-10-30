@@ -21,7 +21,9 @@
 - Undo permitted only if still legal after other actors' actions; never delete audit. Don't report completion notifications multiple times.
 
 ## Offline approach
-- Read from Firestore local cache; show last-sync time / pending indicator when offline.
+- Read previously confirmed DTOs from the identity-scoped protected SQLite cache;
+  show saved-data and pending indicators while checking the server. Firestore
+  memory snapshots do not establish fresh authority or an empty household.
 - For durable offline commands, local outbox includes idempotency key, `householdId`, occurrence id, action, expected version, time and retry status.
 - Replay in order per occurrence after reauth; backoff and stop on permanent denial, expose user decision for conflict. No background phantom success.
 - Firestore's own queued writes are last-write-wins for same document; **do not rely on this for important state transitions**. Use trusted server adjudication, version preconditions and audit.
@@ -35,3 +37,31 @@
 
 ## Notification interaction
 Every rule edit/occurrence status transition updates unique notification jobs; jobs check current server state, authorization, quiet hours and deduplication at dispatch time.
+
+## Implemented local recovery boundary (M12)
+
+Completion, undo, help, approval, redo and help resolution persist an immutable
+UUID/base/payload before the first send. Restarts replay that envelope. Unknown
+responses remain pending; known conflicts and permanent denial stop replay and
+require a current server read before explicit review. Only actual stored
+occurrences contribute to completion counts. An accepted local receipt fences an
+old view until a newer occurrence version arrives. Authoring households, chores,
+recurrence and preferences still requires a connection; those forms do not claim
+durable offline authoring.
+
+Confirmed home/index, roster/role, occurrence/range and clock DTOs are cached by
+SDK UID and household, with an additional supervised profile key. A supervised
+cache cannot read another household. Session fallback contains only the SDK UID,
+verified/supervised scope and household/profile IDs, never an email or token. It
+is available only for the SDK's same current UID on a network lookup failure.
+Cached roles provide no server capability. Known denial or membership removal
+purges household cache and requests; logout purges the identity. Database epochs
+fence already queued writes during purge. Auth restoration suspends replay and
+keeps isolated bytes until a real identity/sign-out result arrives.
+
+Read entries expire after seven device-clock days, with 300 entries per identity
+and 2 MB per value. The journal caps active requests at 100, retries five due
+requests per pass with 10–300 second backoff, and retains 50 accepted receipts.
+These bounds do not establish large-household pagination or three-day expired
+token/hardware reliability. Private help notes and privileged activity are not
+read-cached. See ADR 009 and M12 verification for storage and device limits.

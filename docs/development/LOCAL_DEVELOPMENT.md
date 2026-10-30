@@ -51,8 +51,8 @@ npx firebase emulators:exec --only auth,firestore,functions --project demo-chore
 ```
 
 The fixture script refuses non-emulator endpoints. Household writes are online
-commands; duplicate retries reuse the command ID. Durable interrupted-write
-recovery and cached offline experiences remain M12. The initial timezone picker
+commands; duplicate retries reuse the command ID. M12 adds durable occurrence
+actions and confirmed read caching, described below. The initial timezone picker
 offers Philippines, New York, London, Sydney and UTC; the server validates IANA
 zones. A broader localized picker is a later UX refinement.
 
@@ -124,7 +124,7 @@ history. Commands keep a frozen ID/base/note after uncertain failure. A known
 conflict requires reload. Undo time is enforced by server acceptance, not a supplied
 client clock. Private notes are readable only by their actor and chore managers;
 child UI never queries other actors' notes or privileged activity. Durable
-process-kill recovery remains M12.
+process-kill recovery is exercised by the separate M12 runner below.
 
 M10 adds Today/Chores/Calendar/Family destinations. Today uses the server-authorized
 household clock; calendar dates use the household zone, not the phone zone. Day,
@@ -147,8 +147,8 @@ results and settled scrolling/routes before tapping; a transition may briefly
 contain both old/new text. Exact single-result assertions remain enforced.
 Dashboard widgets additionally exercise 320×568dp and 800×1024dp at 200% text.
 Date-range reads are bounded by one day/week/month and cards display in batches
-of twenty. Large-household pagination/performance and durable offline recovery
-remain later gates. These commands never deploy indexes or create live resources.
+of twenty. Large-household pagination/performance remain later gates. M12 adds
+bounded confirmed read caching. These commands never deploy indexes or create live resources.
 
 M11 adds private in-app updates, guardian-managed child policy and optional local
 reminders. Start both loopback recurrence and notification workers with:
@@ -185,7 +185,42 @@ The local plan has at most 60 alerts in the next 24 hours. Android uses inexact
 alarms and may delay them; no exact alarm permission is requested. iOS reserves
 four of its 64 pending slots. Offline/terminated devices can retain an obsolete
 cached generic alert until reconnect; every tap still rechecks server authority.
-No delivery claim follows from a successful scheduling method. SQLite contains
+No delivery claim follows from a successful scheduling method. The reminder ledger contains
 only opaque IDs/times/opt-in, with persistent collision-free integer OS IDs and
 at-most-once immediate attempts. A crash during an uncertain OS operation can
 lose an alert. See ADR 008 and M11.md for all remaining provider/device gates.
+
+M12 native offline verification uses eight app processes with installation
+preserved so SQLite survives. Start from fresh emulators:
+
+```sh
+npm run build
+npx firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/seed_offline_fixture.mjs && node scripts/run_offline_native.mjs 11D93CA0-385A-42CB-B905-449C8439EB01'
+flutter test integration_test/cache_storage_test.dart -d 11D93CA0-385A-42CB-B905-449C8439EB01 --no-uninstall
+```
+
+Flutter's native integration runner normally uninstalls the app. The offline
+runner passes `--no-uninstall`; Auth Keychain restoration alone cannot prove
+SQLite persistence. The suite sends a real unavailable loopback command, restarts
+to confirm once, restarts again without duplication, creates a competing server
+revision, requires explicit conflict review, starts with Firestore networking
+disabled and Functions unavailable, recovers, then applies actual member removal
+and checks private cache/journal purge. All accounts are fictional. The standalone
+storage test clears the sync/cache databases; run it outside any manual session.
+
+`CHORELY_TEST_OFFLINE_DATA=true` is a debug-only test seam: it disables Firestore
+networking and points Functions to unavailable loopback port 5999 before mounting
+the app. It does not inject accepted state or bypass authentication. Production
+mode remains closed. Native helpers wait for specific real data and advance
+finite route/scroll animations; `pumpAndSettle` cannot finish while a disconnected
+view has an indeterminate loading indicator.
+
+Only completion/review/help occurrence actions use the durable outbox. Authoring
+forms and notification preferences remain online. Previously visited confirmed
+home/roster/role/detail/calendar/clock views may be read from the scoped cache;
+unvisited views cannot promise offline data. Pending counts never add completed
+chores. Reconnect reuses the frozen request; conflicts stop until current server
+state has loaded and the user reviews it. Signing out with requests still waiting
+explains that the device queue will be removed. Physical radios, OS process kill,
+three-day token expiry, backup extraction and locked-device protection remain
+separate M16–M18 gates. See ADR 009 and M12.md for exact verification.

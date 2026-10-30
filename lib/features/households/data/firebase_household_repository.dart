@@ -1,17 +1,27 @@
+import '../../sync/domain/read_cache.dart';
+import '../../sync/data/cached_models.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '../domain/household_repository.dart';
 
 class FirebaseHouseholdRepository implements HouseholdRepository {
-  FirebaseHouseholdRepository(this._db, this._functions);
+  FirebaseHouseholdRepository(this._db, this._functions, {this.readCache});
+  final HouseholdReadCache? readCache;
   final FirebaseFirestore _db;
   final FirebaseFunctions _functions;
 
-  @override
-  Stream<List<HouseholdSummary>> watchHouseholds(String uid) => _db
+  Stream<List<HouseholdSummary>> _serverwatchHouseholds(String uid) => _db
       .collection('users/$uid/households')
-      .snapshots()
+      .snapshots(includeMetadataChanges: true)
+      .where((s) {
+        if (s.metadata.isFromCache) {
+          readCache?.unconfirmed('_account', key: 'homes');
+          return false;
+        }
+        return true;
+      })
       .map(
         (s) => s.docs
             .map(
@@ -23,9 +33,17 @@ class FirebaseHouseholdRepository implements HouseholdRepository {
             )
             .toList(),
       );
-  @override
-  Stream<Household?> watchHousehold(String id) =>
-      _db.doc('households/$id').snapshots().map((s) {
+  Stream<Household?> _serverwatchHousehold(String id) => _db
+      .doc('households/$id')
+      .snapshots(includeMetadataChanges: true)
+      .where((s) {
+        if (s.metadata.isFromCache) {
+          readCache?.unconfirmed(id, key: 'home');
+          return false;
+        }
+        return true;
+      })
+      .map((s) {
         final d = s.data();
         return d == null
             ? null
@@ -35,10 +53,16 @@ class FirebaseHouseholdRepository implements HouseholdRepository {
                 timezone: d['timezoneIana'] as String,
               );
       });
-  @override
-  Stream<List<HouseholdProfile>> watchProfiles(String id) => _db
+  Stream<List<HouseholdProfile>> _serverwatchProfiles(String id) => _db
       .collection('households/$id/profiles')
-      .snapshots()
+      .snapshots(includeMetadataChanges: true)
+      .where((s) {
+        if (s.metadata.isFromCache) {
+          readCache?.unconfirmed(id, key: 'profiles');
+          return false;
+        }
+        return true;
+      })
       .map(
         (s) => s.docs
             .map(
@@ -77,5 +101,65 @@ class FirebaseHouseholdRepository implements HouseholdRepository {
         _ => 'Couldn’t confirm your household. Check your connection and try again.',
       });
     }
+  }
+
+  @override
+  Stream<List<HouseholdSummary>> watchHouseholds(String uid) {
+    final server = _serverwatchHouseholds(uid).asyncMap((rows) async {
+      await readCache?.reconcileHomeIndex(uid, rows.map((h) => h.id));
+      return rows;
+    });
+    return readCache?.watch(
+          householdId: '_account',
+          key: 'homes',
+          server: server,
+          encode: (rows) => [
+            for (final h in rows) {'id': h.id, 'name': h.name, 'role': h.role},
+          ],
+          decode: (v) => objectList(v, (x) {
+            final h = objectMap(x);
+            return HouseholdSummary(
+              id: h['id'] as String,
+              name: h['name'] as String,
+              role: h['role'] as String,
+            );
+          }),
+        ) ??
+        server;
+  }
+
+  @override
+  Stream<Household?> watchHousehold(String hid) {
+    final server = _serverwatchHousehold(hid);
+    return readCache?.watch<Household?>(
+          householdId: hid,
+          key: 'home',
+          server: server,
+          encode: (v) => v == null ? null : saveHome(v),
+          decode: (v) => v == null ? null : readHome(v),
+          authorized: (v) => v != null,
+        ) ??
+        server;
+  }
+
+  @override
+  Stream<List<HouseholdProfile>> watchProfiles(String hid) {
+    final server = _serverwatchProfiles(hid);
+    return readCache?.watch(
+          householdId: hid,
+          key: 'profiles',
+          server: server,
+          encode: (rows) => [
+            for (final p in rows) {'nickname': p.nickname, 'role': p.role},
+          ],
+          decode: (v) => objectList(v, (x) {
+            final p = objectMap(x);
+            return HouseholdProfile(
+              nickname: p['nickname'] as String,
+              role: p['role'] as String,
+            );
+          }),
+        ) ??
+        server;
   }
 }

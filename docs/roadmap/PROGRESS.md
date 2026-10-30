@@ -1,6 +1,6 @@
 # Chorely Development Progress — Authoritative Tracker
 
-**Project status:** IN PROGRESS. Local M00–M10 gates verified; M11 local notification slice verified with external provider/device gates open. M12 is next. Remaining implementation and release gates follow below.
+**Project status:** IN PROGRESS. Local M00–M10 and M12 gates verified; M11 local notification slice verified with external provider/device gates open. M13 is next. Remaining implementation and release gates follow below.
 
 **Current branch:** main (new repository). **Current commit:** see Git log; milestone hashes recorded after each commit.
 
@@ -17,8 +17,8 @@
 | M08 | PASS | 51e9436c09f1778f97fd984a9595bf28381e8379 | 2026-10-29 | `docs/verification/M08.md` | Local worker/native gate; live scheduler/IAM, index rollout and devices remain unverified |
 | M09 | PASS | 72e3f6a6878a16fba9642ff430de700b19fd721e | 2026-10-29 | `docs/verification/M09.md` | Local completion/review gate; durable outbox and device/release coverage remain |
 | M10 | PASS | ef91ee87dd1c86d598c9d7fa434be47ee39d311d | 2026-10-29 | `docs/verification/M10.md` | Local phone/tablet/calendar gate; offline, live index rollout and release/device gates remain |
-| M11 | PARTIAL | record after commit | 2026-10-29 | `docs/verification/M11.md` | Verified private inbox/preferences/local adapter/cold routing (115 backend, 63 Flutter, Android build, 3 native processes); FCM/APNs registration/provider integration and physical OS delivery remain open. Continue independent M12. |
-| M12 | PLANNED | — | — | `docs/verification/M12.md` (to create) | — |
+| M11 | PARTIAL | 976a125a0fbab56d1681d7b819d85e518472fb9b | 2026-10-29 | `docs/verification/M11.md` | Verified private inbox/preferences/local adapter/cold routing (115 backend, 63 Flutter, Android build, 3 native processes); FCM/APNs registration/provider integration and physical OS delivery remain open. Continue independent M12. |
+| M12 | PASS | recorded after commit | 2026-10-30 | `docs/verification/M12.md` | 88 Flutter / 115 backend tests, native SQLite + eight offline processes, child/guardian completion restart regression and Android debug build pass. Physical radio/locked-device/expired-token coverage remains M16–M18; M11 provider gates remain open. |
 | M13 | PLANNED | — | — | `docs/verification/M13.md` (to create) | — |
 | M14 | PLANNED | — | — | `docs/verification/M14.md` (to create) | — |
 | M15 | PLANNED | — | — | `docs/verification/M15.md` (to create) | — |
