@@ -58,6 +58,7 @@ class ChoreOccurrence {
     this.reviewNote,
     this.dueAtUtc,
     this.windowStartAtUtc,
+    this.postponed = false,
   });
   final String id;
   final String templateId;
@@ -86,6 +87,7 @@ class ChoreOccurrence {
   final String? reviewNote;
   final DateTime? dueAtUtc;
   final DateTime? windowStartAtUtc;
+  final bool postponed;
   String get localDate => draft.schedule['date']! as String;
   bool pastDueAt(DateTime now) =>
       ['scheduled', 'needs_redo'].contains(status) &&

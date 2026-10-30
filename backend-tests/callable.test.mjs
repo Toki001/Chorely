@@ -103,6 +103,65 @@ const request = () => ({
   timezone: "Asia/Manila",
 });
 
+test("Real postponement callable checks guardian scope and returns a persisted idempotent deadline", async () => {
+  const guardian = await account(),
+    outsider = await account(),
+    child = await account(true, true);
+  const hid = (await guardian.create(request())).data.householdId;
+  const today = householdDate(Date.now(), "Asia/Manila");
+  const created = (
+    await guardian.call("writeOneOffChore", {
+      action: "create",
+      householdId: hid,
+      commandId: randomUUID(),
+      title: "Fictional timed chore",
+      category: "household",
+      steps: [],
+      assignedActorIds: [guardian.auth.currentUser.uid],
+      completionPolicy: "any_one_completes",
+      reviewMode: "none",
+      schedule: { kind: "time", date: addCivilDays(today, 1), at: "18:00" },
+    })
+  ).data;
+  const intent = {
+    householdId: hid,
+    occurrenceId: created.occurrenceId,
+    commandId: randomUUID(),
+    baseVersion: 1,
+    schedule: { kind: "deadline", date: addCivilDays(today, 2), at: "19:30" },
+  };
+  for (const caller of [outsider, child])
+    await assert.rejects(caller.call("postponeOccurrence", intent), {
+      code: "functions/permission-denied",
+    });
+  const result = (await guardian.call("postponeOccurrence", intent)).data;
+  assert.equal(result.version, 2);
+  assert.deepEqual(
+    (await guardian.call("postponeOccurrence", intent)).data,
+    result,
+  );
+  const row = await getDocFromServer(
+    doc(guardian.db, `households/${hid}/occurrences/${created.occurrenceId}`),
+  );
+  assert.equal(row.get("scheduleOverride.kind"), "postpone");
+  assert.equal(row.get("templateVersion"), 1);
+  assert.equal(row.get("requestedSchedule.date"), addCivilDays(today, 2));
+  await assert.rejects(
+    guardian.call("postponeOccurrence", {
+      ...intent,
+      commandId: randomUUID(),
+      baseVersion: 2,
+      nowMillis: 0,
+      schedule: {
+        kind: "deadline",
+        date: addCivilDays(today, -1),
+        at: "20:00",
+      },
+    }),
+    { code: "functions/invalid-argument" },
+  );
+});
+
 test("Callable ignores forged auth claims and denies unauthenticated/unverified/child callers", async () => {
   const anonymous = client();
   const unverified = await account(false);

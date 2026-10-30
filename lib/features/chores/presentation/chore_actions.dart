@@ -1,5 +1,7 @@
 import '../../sync/domain/chore_command_outbox.dart';
 import '../../sync/presentation/chore_command_scope.dart';
+import '../../scheduling/domain/postponement_repository.dart';
+import '../../scheduling/presentation/postpone_screen.dart';
 
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -325,6 +327,29 @@ class _ChoreActionsState extends State<ChoreActions> {
               child: LinearProgressIndicator(
                 semanticsLabel: 'Confirming chore action',
               ),
+            ),
+          if (actor.guardian &&
+              !widget.supervised &&
+              chore.editable &&
+              widget.repository is PostponementRepository)
+            OutlinedButton.icon(
+              onPressed: canPress
+                  ? () async {
+                      final changed = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          builder: (_) => PostponeScreen(
+                            householdId: widget.householdId,
+                            base: chore,
+                            repository:
+                                widget.repository as PostponementRepository,
+                          ),
+                        ),
+                      );
+                      if (mounted && changed != null) widget.onReload();
+                    }
+                  : null,
+              icon: const Icon(Icons.update_rounded),
+              label: const Text('Postpone this occurrence'),
             ),
           if (_error != null) InlineError(_error!),
           if (_pending != null && !_busy) ...[

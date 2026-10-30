@@ -98,3 +98,11 @@ and terminal work stay intact during automatic reconciliation.
 uses atomic per-rule work plus a global bounded scan/cursor. Deployment, index
 rollout and live scheduler IAM are not implied by locally authored configuration.
 See ADR-005 and M08 verification for actual evidence and remaining platform gates.
+
+M13's guardian-only `postponeOccurrence` updates actual occurrence timing/version
+and `scheduleOverride {kind, commandId, originalLocalDate, actorId, acceptedAt}`.
+The ID/slotKey and reusable template/rule remain unchanged. An immutable activity
+event records each from/to schedule; UID/UUID payload-bound receipts and a daily
+quota commit with the occurrence and notification outbox event. Recurrence
+reconciliation preserves explicitly postponed occurrences, including after future
+rule pauses. Client writes remain denied. See ADR 010 and M13 verification.

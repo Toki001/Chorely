@@ -38,6 +38,14 @@
 ## Notification interaction
 Every rule edit/occurrence status transition updates unique notification jobs; jobs check current server state, authorization, quiet hours and deduplication at dispatch time.
 
+M13 postponement adds an explicit guardian-owned occurrence override. It changes
+the actual date/deadline and occurrence version, preserving the original ID/slot,
+template/rule, assignment, completion and all audit history. Recurrence refresh
+and future rule pauses preserve this individual decision. Rule previews describe
+the base rotation; Calendar/detail read the actual overridden timing. Later
+requests require current version and a later server-validated deadline. See ADR
+010. This slice does not implement negotiated swaps, routine bundles or away UI.
+
 ## Implemented local recovery boundary (M12)
 
 Completion, undo, help, approval, redo and help resolution persist an immutable

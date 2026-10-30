@@ -284,6 +284,8 @@ async function plan(
     }
   }
   const frozen = (snapshot: DocumentSnapshot) => {
+    // An explicit guardian change belongs to this occurrence, not the rule.
+    if (snapshot.get("scheduleOverride.kind") === "postpone") return true;
     if (Object.keys(snapshot.get("contributions") ?? {}).length > 0)
       return true;
     const date = snapshot.get("localDate") as string;

@@ -404,3 +404,4 @@ export async function writeOneOffChore(
 
 // Reuse the same trusted content and permission boundary for recurring definitions.
 export { content as parseChoreContent, authorized as authorizeChoreManager };
+export { timing as resolveChoreTiming, eligible as validateChoreAssignees };

@@ -156,3 +156,13 @@ purge/write races. Supervised cache tests fence the household/profile as well as
 the SDK UID. Exact passing counts and remaining hardware/expired-token coverage
 are recorded in `docs/verification/M12.md`; no provider delivery or production
 readiness follows from these local recovery checks.
+
+M13 postponement slice: acceptance criterion 12 / C09 maps to `postpone.ts`,
+`backend-tests/postpone.test.mjs`, real callable coverage in `callable.test.mjs`,
+`features/scheduling`, `test/postpone_test.dart` and native
+`postpone{,_restart}_test.dart`. Tests cover guardian-only access, stale/current
+membership, immutable retry envelopes, competing revisions, terminal/partial
+work, civil/DST bounds, preserved recurrence overrides and timing-job
+cancellation without a second assignment alert. This is an independent slice;
+routine bundles, negotiated swaps and away UI remain open. Exact verified results
+and the overall PARTIAL/IN PROGRESS state belong in `docs/verification/M13.md`.

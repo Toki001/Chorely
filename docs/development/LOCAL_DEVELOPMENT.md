@@ -224,3 +224,20 @@ state has loaded and the user reviews it. Signing out with requests still waitin
 explains that the device queue will be removed. Physical radios, OS process kill,
 three-day token expiry, backup extraction and locked-device protection remain
 separate M16–M18 gates. See ADR 009 and M12.md for exact verification.
+
+M13's initial scheduling flow lets a current guardian choose a later deadline for
+one uncompleted occurrence. It preserves the slot/history and future rule. The
+form is an online authoring flow; uncertain retry freezes the same ID/base/time,
+and conflicts require a current server read. A future recurrence pause preserves
+that explicit moved turn; the base rotation preview does not override it. The
+initial form explicitly replaces a time window with the selected single deadline.
+
+```sh
+npm run build
+npx firebase emulators:exec --only auth,firestore,functions --project demo-chorely 'node scripts/seed_notification_fixture.mjs && node scripts/run_postpone_native.mjs 11D93CA0-385A-42CB-B905-449C8439EB01'
+```
+
+The runner uses two app processes, verifies the actual callable/date/activity and
+checks the unchanged template/slot plus zero completion contributions. It keeps
+installation for restart and refuses non-demo/non-loopback services. Routines,
+consented swaps and away flow are still separate M13 work.

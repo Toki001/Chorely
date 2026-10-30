@@ -78,6 +78,7 @@ class ChoreActivity {
     'occurrence_help_resolved' => 'Marked a help request answered',
     'chore_create' => 'Created this chore',
     'chore_edit' => 'Updated this chore',
+    'occurrence_postponed' => 'Postponed this occurrence',
     'chore_archive' => 'Cancelled this chore',
     'recurrence_materialized' => 'Scheduled this turn',
     'recurrence_revised' => 'Changed this future turn',

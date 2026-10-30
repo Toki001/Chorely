@@ -1,5 +1,6 @@
 import '../../sync/domain/read_cache.dart';
 import '../../sync/data/cached_models.dart';
+import '../../scheduling/domain/postponement_repository.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -8,11 +9,53 @@ import '../domain/chore_repository.dart';
 import '../domain/recurrence_repository.dart';
 import 'firebase_recurrence_repository.dart';
 
-class FirebaseChoreRepository implements ChoreRepository {
+class FirebaseChoreRepository
+    implements ChoreRepository, PostponementRepository {
   FirebaseChoreRepository(this._db, this._functions, {this.readCache});
   final HouseholdReadCache? readCache;
   final FirebaseFirestore _db;
   final FirebaseFunctions _functions;
+  @override
+  Future<void> postpone(PostponementRequest request) async {
+    try {
+      await _functions
+          .httpsCallable(
+            'postponeOccurrence',
+            options: HttpsCallableOptions(timeout: const Duration(seconds: 10)),
+          )
+          .call<Object?>(request.toMap());
+    } on FirebaseFunctionsException catch (e) {
+      throw ChoreFailure(
+        switch (e.code) {
+          'aborted' =>
+            'This chore changed on another device. Reload before postponing.',
+          'permission-denied' =>
+            'Only a current guardian can postpone this occurrence.',
+          'invalid-argument' => 'Choose a later deadline within the next 30 household days. Untimed chores move to a later day.',
+          'failed-precondition' => 'This chore has recorded work or is no longer available to postpone.',
+          'not-found' => 'This chore is no longer available.',
+          'resource-exhausted' =>
+            'The daily postponement limit was reached. Try again later.',
+          'already-exists' => 'This request was already used. Reload to check the saved deadline.',
+          'unauthenticated' => 'Sign in again before changing the deadline.',
+          _ => 'Couldn’t confirm the new deadline. Retry the same request.',
+        },
+        conflict: e.code == 'aborted',
+        retryable: ![
+          'aborted',
+          'permission-denied',
+          'invalid-argument',
+          'failed-precondition',
+          'not-found',
+          'resource-exhausted',
+          'already-exists',
+          'unauthenticated',
+        ].contains(e.code),
+      );
+    }
+    await refresh(request.householdId, request.occurrenceId);
+  }
+
   @override
   late final RecurrenceRepository recurrence = FirebaseRecurrenceRepository(
     _db,
@@ -34,6 +77,7 @@ class FirebaseChoreRepository implements ChoreRepository {
       effectiveDueLocal: d['effectiveDueLocal'] as String?,
       effectiveStartLocal: d['effectiveStartLocal'] as String?,
       schedulingReason: d['reason'] as String?,
+      postponed: (d['scheduleOverride'] as Map?)?['kind'] == 'postpone',
       dueAtUtc: (d['dueAtUtc'] as Timestamp?)?.toDate(),
       windowStartAtUtc: (d['windowStartAtUtc'] as Timestamp?)?.toDate(),
       completionRevision: (d['completionRevision'] as num?)?.toInt() ?? 0,

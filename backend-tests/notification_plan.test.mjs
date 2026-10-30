@@ -63,10 +63,18 @@ test("Stable notification IDs survive retries, unrelated state revisions and pre
     initial.map((j) => j.id),
   );
   assert.notEqual(plan(row({ assignmentRevision: 2 }))[0].id, initial[0].id);
-  assert.notEqual(
+  assert.equal(
     plan(row({ dueAtMillis: t("29T11:00:00") }))[0].id,
     initial[0].id,
   );
+  for (const event of ["upcoming", "due", "overdue"]) {
+    assert.notEqual(
+      plan(row({ dueAtMillis: t("29T11:00:00") })).find(
+        (j) => j.event === event,
+      ).id,
+      initial.find((j) => j.event === event).id,
+    );
+  }
 });
 test("Partial work suppresses that actor's reminders; terminal/cancelled slots do not nag", () => {
   assert.equal(

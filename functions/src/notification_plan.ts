@@ -183,7 +183,14 @@ export function planOccurrenceNotifications(input: {
       emit(
         actorId,
         "assigned",
-        scheduleRevision,
+        // A later deadline changes timing reminders, not who received a turn.
+        // Keep a published/read assignment from alerting again after postpone.
+        hash(
+          JSON.stringify([
+            row.assignmentRevision,
+            [...row.assignedActorIds].sort(),
+          ]),
+        ),
         assignedAt,
         row.dueAtMillis ?? endOfSlot,
       );

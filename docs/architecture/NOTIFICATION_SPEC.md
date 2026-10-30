@@ -40,3 +40,10 @@ Push is reserved in the schema but not offered for new policies or dispatched.
 Local ledger attempts are not OS display/delivery evidence. Unknown provider
 acceptance must never be retried as an assumed failure. Daily digests remain
 outside the initial event implementation and are not claimed available.
+
+M13 postponement keeps assignment IDs tied to the owner generation/set. Deadline
+changes replace upcoming/due/overdue schedule IDs and cancel the previous jobs,
+while preserving an existing assignment's publication/read state. A separate
+postpone/swap request notification from the planned event table is not yet
+implemented; the current guardian action updates actual timing, activity and
+reminder plans. No provider delivery gate is closed by this change.

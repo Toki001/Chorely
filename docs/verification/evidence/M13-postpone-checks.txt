@@ -1,0 +1,36 @@
+Sanitized M13 postponement evidence, 2026-10-30. Commands/limits: ../M13.md.
+
+Source: verify
+No issues found! (ran in 3.6s)
++93: All tests passed!
+# tests 126
+# pass 126
+# fail 0
+# skipped 0
+# duration_ms 89537.820084
+PASS: 9 original art hashes/alpha/prompts; 4 explicit bundled assets; references excluded
+PASS: tracked source credential and machine-config guardrails
+PASS: 20 P0 requirements retain flow/screen/milestone/test mappings
+found 0 vulnerabilities
+
+Source: final-analyze
+No issues found! (ran in 4.4s)
+
+Source: final-flutter
++93: All tests passed!
+
+Source: native-keyboard
++1: All tests passed!
++1: All tests passed!
+PASS: postpone_test kept one accepted deadline override, unchanged template/slot, one audit event and zero completion contributions.
+PASS: postpone_restart_test kept one accepted deadline override, unchanged template/slot, one audit event and zero completion contributions.
+Xcode build done.                                           35.7s
+Xcode build done.                                           27.7s
+Chorely M13 postpone form ready
+Chorely M13 stored deadline ready
+Chorely M13 fresh deadline ready
+
+Source: final-android
+Built build/app/outputs/flutter-apk/app-debug.apk
+Running Gradle task 'assembleDebug'...
+Running Gradle task 'assembleDebug'...                              6.4s

@@ -284,6 +284,10 @@ class _ChoreDetailState extends State<ChoreDetail> {
               const SizedBox(height: 16),
               Text(chore.timingLabel),
               Text(chore.timezone),
+              if (chore.postponed)
+                const Text(
+                  'This occurrence was postponed. Other turns keep their schedule.',
+                ),
               if (chore.schedulingReason != null)
                 Text(recurrenceReasonLabel(chore.schedulingReason)),
               if (chore.timeAdjusted)
